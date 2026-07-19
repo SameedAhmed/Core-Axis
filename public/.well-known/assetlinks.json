@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.digixcrm.app",
+      "sha256_cert_fingerprints": [
+        "DA:1F:A7:C5:2E:FA:2E:60:6B:7F:AB:3D:3D:28:52:1B:76:2B:7B:4D:8B:B2:DB:3A:F3:0A:51:35:24:86:58:EF"
+      ]
+    }
+  }
+]

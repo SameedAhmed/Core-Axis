@@ -1,0 +1,498 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id                     String               @id @default(cuid())
+  name                   String?
+  email                  String?              @unique
+  emailVerified          DateTime?
+  image                  String?
+  password               String?
+  twoFactorSecret        String?
+  isTwoFactorEnabled     Boolean              @default(false)
+  role                   Role                 @default(REP)
+  accountId              String?
+  isAccountOwner         Boolean              @default(false)
+  activeWorkspaceId      String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  hasCompletedOnboarding Boolean              @default(false)
+  jobTitle               String?
+  phoneNumber            String?
+  bio                    String?
+  timezone               String?
+  language               String?
+  isActive               Boolean              @default(true)
+  accounts               Account[]
+  activities             Activity[]
+  auditLogs              AuditLog[]
+  contacts               Contact[]
+  createdDeals           Deal[]               @relation("DealCreator")
+  deals                  Deal[]
+  createdLeads           Lead[]               @relation("LeadCreator")
+  leads                  Lead[]
+  notifications          Notification[]
+  createdOrganizations   Organization[]       @relation("OrgCreator")
+  organizations          Organization[]
+  sessions               Session[]
+  account                SubscriptionAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  ownedWorkspaces        Workspace[]          @relation("WorkspaceOwner")
+  workspaceMemberships   WorkspaceMember[]
+  expenses               Expense[]            @relation("ExpenseCreator")
+  invoices               Invoice[]            @relation("InvoiceCreator")
+  employeeProfile        EmployeeProfile?
+  attendance             Attendance[]
+}
+
+model SubscriptionAccount {
+  id                     String               @id @default(cuid())
+  name                   String
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  planTier               PlanTier             @default(FREE)
+  paymentProvider        PaymentProvider?
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  activeSeats            Int                  @default(1)
+  hasPaymentSetup        Boolean              @default(false)
+  trialEndsAt            DateTime?
+  ownerId                String               @unique
+  isActive               Boolean              @default(true)
+  users                  User[]
+  workspaces             Workspace[]
+  pendingRegistration    PendingRegistration?
+}
+
+model Workspace {
+  id              String               @id @default(cuid())
+  name            String
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  ownerId         String
+  accountId       String?
+  logo            String?
+  description     String?
+  website         String?
+  industry        String?
+  timezone        String               @default("UTC")
+  currency        String               @default("USD")
+  dealStages      Json?
+  lastActivityAt  DateTime             @default(now())
+  activities      Activity[]
+  auditLogs       AuditLog[]
+  automationRules AutomationRule[]
+  contacts        Contact[]
+  customInputs    CustomInput[]
+  customRoles     CustomRole[]
+  deals           Deal[]
+  integrations    Integration[]
+  leads           Lead[]
+  notifications   Notification[]
+  organizations   Organization[]
+  account         SubscriptionAccount? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  owner           User                 @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members         WorkspaceMember[]
+  expenses        Expense[]
+  invoices        Invoice[]
+  candidates      Candidate[]
+}
+
+model CustomRole {
+  id          String            @id @default(cuid())
+  name        String
+  permissions String[]
+  workspaceId String
+  workspace   Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members     WorkspaceMember[]
+}
+
+model WorkspaceMember {
+  id           String      @id @default(cuid())
+  workspaceId  String
+  userId       String
+  role         Role        @default(REP)
+  customRoleId String?
+  joinedAt     DateTime    @default(now())
+  customRole   CustomRole? @relation(fields: [customRoleId], references: [id])
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace    Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Organization {
+  id          String     @id @default(cuid())
+  name        String
+  website     String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  ownerId     String?
+  createdById String?
+  workspaceId String?
+  contacts    Contact[]
+  deals       Deal[]
+  leads       Lead[]
+  createdBy   User?      @relation("OrgCreator", fields: [createdById], references: [id])
+  owner       User?      @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  invoices    Invoice[]
+}
+
+model Lead {
+  id             String        @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  service        String?
+  quotation      Float?        @default(0)
+  remarks        String?
+  location       String?
+  status         LeadStatus    @default(NEW)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  ownerId        String?
+  createdById    String?
+  organizationId String?
+  source         String        @default("MANUAL")
+  workspaceId    String?
+  activities     Activity[]
+  createdBy      User?         @relation("LeadCreator", fields: [createdById], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  owner          User?         @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  workspace      Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  isViewed       Boolean       @default(false)
+
+  @@index([workspaceId, isViewed])
+}
+
+model Contact {
+  id             String        @id @default(cuid())
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  ownerId        String?
+  organizationId String?
+  dealId         String?
+  workspaceId    String?
+  activities     Activity[]
+  deal           Deal?         @relation(fields: [dealId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  owner          User?         @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  workspace      Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Deal {
+  id             String        @id @default(cuid())
+  title          String
+  value          Float         @default(0)
+  stage          DealStage     @default(QUALIFICATION)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  ownerId        String?
+  createdById    String?
+  organizationId String?
+  workspaceId    String?
+  customStage    String?
+  activities     Activity[]
+  contacts       Contact[]
+  createdBy      User?         @relation("DealCreator", fields: [createdById], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  owner          User?         @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+  workspace      Workspace?    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Activity {
+  id          String     @id @default(cuid())
+  type        String
+  notes       String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  userId      String
+  leadId      String?
+  contactId   String?
+  dealId      String?
+  workspaceId String?
+  contact     Contact?   @relation(fields: [contactId], references: [id])
+  deal        Deal?      @relation(fields: [dealId], references: [id])
+  lead        Lead?      @relation(fields: [leadId], references: [id])
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String?
+  details     String?
+  createdAt   DateTime   @default(now())
+  userId      String
+  workspaceId String?
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+}
+
+model Integration {
+  id            String     @id @default(cuid())
+  provider      String
+  apiKey        String?
+  webhookSecret String?
+  smtpHost      String?
+  smtpPort      Int?
+  smtpUser      String?
+  smtpPass      String?
+  smtpFrom      String?
+  isActive      Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  workspaceId   String?
+  workspace     Workspace? @relation(fields: [workspaceId], references: [id])
+
+  @@unique([workspaceId, provider])
+}
+
+model Notification {
+  id          String     @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  type        String
+  link        String?
+  isRead      Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  workspaceId String?
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+model GlobalSettings {
+  id               String   @id @default("SYSTEM_CONFIG")
+  turnstileEnabled Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+}
+
+model AutomationRule {
+  id          String    @id @default(cuid())
+  name        String
+  trigger     String
+  conditions  Json
+  action      String
+  actionValue String
+  isActive    Boolean   @default(true)
+  workspaceId String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model PendingRegistration {
+  id        String              @id @default(cuid())
+  email     String              @unique
+  planTier  PlanTier
+  accountId String              @unique
+  account   SubscriptionAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  token     String              @unique
+  used      Boolean             @default(false)
+  expiresAt DateTime
+  createdAt DateTime            @default(now())
+}
+
+model CustomInput {
+  id          String    @id @default(cuid())
+  workspaceId String
+  type        String
+  name        String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, type, name])
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  REP
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+}
+
+enum DealStage {
+  QUALIFICATION
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum PlanTier {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum PaymentProvider {
+  STRIPE
+  PAYPAL
+  SQUARE
+  AUTHORIZE_NET
+  MANUAL
+}
+
+// ==========================================
+// ERP Finance Module
+// ==========================================
+
+model Expense {
+  id          String   @id @default(cuid())
+  title       String
+  amount      Float
+  category    String
+  date        DateTime @default(now())
+  workspaceId String
+  createdById String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User      @relation("ExpenseCreator", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id             String        @id @default(cuid())
+  invoiceNumber  String
+  amount         Float
+  status         InvoiceStatus @default(PENDING)
+  dueDate        DateTime
+  notes          String?
+  workspaceId    String
+  organizationId String?
+  createdById    String
+
+  workspace    Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  createdBy    User          @relation("InvoiceCreator", fields: [createdById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+// ==========================================
+// ERP HR Module
+// ==========================================
+
+model EmployeeProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  department  String?
+  designation String?
+  salary      Float?
+  joiningDate DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Attendance {
+  id     String           @id @default(cuid())
+  userId String
+  date   DateTime         @default(now())
+  status AttendanceStatus @default(PRESENT)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  ON_LEAVE
+}
+
+model Candidate {
+  id            String          @id @default(cuid())
+  name          String
+  email         String
+  appliedRole   String
+  resumeText    String?
+  aiScore       Int?
+  aiScoreReason String?
+  status        CandidateStatus @default(APPLIED)
+  workspaceId   String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum CandidateStatus {
+  APPLIED
+  SCREENED
+  INTERVIEWING
+  OFFERED
+  REJECTED
+}

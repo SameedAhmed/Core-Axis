@@ -1,0 +1,3 @@
+firstName,lastName,email,phone,location,service,quotation,status,source,date,remarks
+John,Doe,john.doe@example.com,+15551234567,California,Solar Panel,5000,NEW,META_ADS,2026-03-23,Interested in installation
+Jane,Smith,jane.smith@example.com,+14150000000,New York,Web Dev,3500,QUALIFIED,SEO,2026-03-22,Met at convention

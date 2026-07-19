@@ -1,0 +1,10 @@
+
+model CustomInput {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  type        String   // SERVICE, SOURCE
+  name        String
+  
+  @@unique([workspaceId, type, name])
+}
