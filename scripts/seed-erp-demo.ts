@@ -78,11 +78,28 @@ const CANDIDATE_PROFILES: { name: string; email: string; appliedRole: string; re
   },
 ];
 
+const PRODUCT_TEMPLATES: { name: string; sku: string; category: string; unitPrice: number; startStock: number; reorderLevel: number; demandTrend: "flat" | "rising" | "critical" }[] = [
+  { name: "Wireless Mouse", sku: "WM-100", category: "Electronics", unitPrice: 24.99, startStock: 120, reorderLevel: 30, demandTrend: "flat" },
+  { name: "USB-C Hub", sku: "UCH-200", category: "Electronics", unitPrice: 39.99, startStock: 80, reorderLevel: 25, demandTrend: "rising" },
+  { name: "Office Chair (Ergonomic)", sku: "OCE-300", category: "Furniture", unitPrice: 189.0, startStock: 25, reorderLevel: 10, demandTrend: "flat" },
+  { name: "Standing Desk", sku: "SD-400", category: "Furniture", unitPrice: 349.0, startStock: 15, reorderLevel: 8, demandTrend: "rising" },
+  { name: "27in Monitor", sku: "MON-500", category: "Electronics", unitPrice: 259.0, startStock: 18, reorderLevel: 12, demandTrend: "critical" },
+  { name: "Notebook (Pack of 10)", sku: "NB-600", category: "Office Supplies", unitPrice: 12.5, startStock: 200, reorderLevel: 40, demandTrend: "flat" },
+];
+
 async function main() {
-  console.log("🚀 Seeding real ERP demo data (Expenses, Invoices, Candidates)...");
+  console.log("🚀 Seeding real ERP demo data (Expenses, Invoices, Candidates, Inventory, Attendance)...");
 
   const workspaces = await prisma.workspace.findMany({
-    include: { owner: true, organizations: { take: 5 } },
+    include: {
+      owner: true,
+      organizations: { take: 5 },
+      // NOTE: select (not include) and omit `role` here — some legacy
+      // WorkspaceMember rows have role values ('STAFF', 'PROJECT_MANAGER')
+      // that predate the current Role enum and aren't valid in it, which
+      // makes Prisma throw P2023 if that field is hydrated.
+      members: { select: { userId: true, user: { select: { id: true, name: true, email: true } } }, take: 15 },
+    },
   });
 
   if (workspaces.length === 0) {
@@ -192,11 +209,102 @@ async function main() {
     } else {
       console.log(`  🧑‍💼 ${existingCandidateCount} candidates already present, skipping.`);
     }
+
+    // --- Products + 6 weeks of stock movement history (some trending up, one already critical) ---
+    const existingProductCount = await prisma.product.count({ where: { workspaceId: workspace.id } });
+    if (existingProductCount === 0) {
+      console.log("  📦 Generating products with 6 weeks of stock movement history...");
+      for (const template of PRODUCT_TEMPLATES) {
+        const product = await prisma.product.create({
+          data: {
+            name: template.name,
+            sku: template.sku,
+            category: template.category,
+            currentStock: template.startStock,
+            reorderLevel: template.reorderLevel,
+            unitPrice: template.unitPrice,
+            workspaceId: workspace.id,
+          },
+        });
+
+        let runningStock = template.startStock;
+        for (let w = 5; w >= 0; w--) {
+          const weekDate = new Date();
+          weekDate.setDate(weekDate.getDate() - w * 7 - randomInt(0, 3));
+
+          let weeklyOut: number;
+          if (template.demandTrend === "rising") {
+            weeklyOut = randomInt(3, 6) + (5 - w) * 2; // increases each week
+          } else if (template.demandTrend === "critical") {
+            weeklyOut = randomInt(6, 10) + (5 - w) * 3; // sharp increase, will trigger reorder
+          } else {
+            weeklyOut = randomInt(2, 6);
+          }
+          weeklyOut = Math.min(weeklyOut, Math.max(runningStock - 1, 0));
+
+          if (weeklyOut > 0) {
+            await prisma.stockMovement.create({
+              data: { productId: product.id, type: "OUT", quantity: weeklyOut, date: weekDate, workspaceId: workspace.id },
+            });
+            runningStock -= weeklyOut;
+          }
+
+          // Occasional restock IN movement
+          if (w === 3 && template.demandTrend === "flat") {
+            const inQty = randomInt(20, 40);
+            await prisma.stockMovement.create({
+              data: { productId: product.id, type: "IN", quantity: inQty, date: weekDate, workspaceId: workspace.id, note: "Restock" },
+            });
+            runningStock += inQty;
+          }
+        }
+
+        await prisma.product.update({ where: { id: product.id }, data: { currentStock: Math.max(runningStock, 0) } });
+      }
+    } else {
+      console.log(`  📦 ${existingProductCount} products already present, skipping.`);
+    }
+
+    // --- Attendance: 30 days for each workspace member, with one deliberately unusual absentee ---
+    const memberUserIds = workspace.members.map((m: any) => m.userId);
+    if (memberUserIds.length > 0) {
+      const existingAttendanceCount = await prisma.attendance.count({ where: { userId: { in: memberUserIds } } });
+      if (existingAttendanceCount === 0) {
+        console.log("  🗓️  Generating 30 days of attendance (with one flagged anomaly)...");
+        const anomalyUserId = memberUserIds.length > 1 ? memberUserIds[randomInt(1, memberUserIds.length - 1)] : null;
+
+        for (const userId of memberUserIds) {
+          const isAnomaly = userId === anomalyUserId;
+          for (let d = 29; d >= 0; d--) {
+            const date = new Date();
+            date.setDate(date.getDate() - d);
+            date.setHours(0, 0, 0, 0);
+
+            // Skip weekends for a slightly more realistic pattern
+            if (date.getDay() === 0 || date.getDay() === 6) continue;
+
+            const roll = Math.random();
+            let status: "PRESENT" | "ABSENT" | "HALF_DAY" | "ON_LEAVE";
+            if (isAnomaly) {
+              status = roll < 0.45 ? "ABSENT" : roll < 0.55 ? "HALF_DAY" : "PRESENT";
+            } else {
+              status = roll < 0.05 ? "ABSENT" : roll < 0.1 ? "HALF_DAY" : roll < 0.12 ? "ON_LEAVE" : "PRESENT";
+            }
+
+            await prisma.attendance.create({ data: { userId, status, date } });
+          }
+        }
+      } else {
+        console.log(`  🗓️  ${existingAttendanceCount} attendance records already present, skipping.`);
+      }
+    }
   }
 
   console.log("\n✅ ERP DEMO SEEDING COMPLETE!");
   console.log("Finance Hub will show a real 6-month trend, a linear-regression forecast, and 1-2 flagged anomalies.");
   console.log("Recruitment Center has 6 unscored candidates ready for live 'Run Auto-Screening'.");
+  console.log("Inventory Hub will show 6 products with real demand forecasts (2 trending toward reorder).");
+  console.log("Attendance Tracker will show 30 days of history with 1 flagged absence anomaly per workspace.");
 }
 
 main()

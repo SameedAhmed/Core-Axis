@@ -101,6 +101,8 @@ model Workspace {
   expenses        Expense[]
   invoices        Invoice[]
   candidates      Candidate[]
+  products        Product[]
+  stockMovements  StockMovement[]
 }
 
 model CustomRole {
@@ -495,4 +497,47 @@ enum CandidateStatus {
   INTERVIEWING
   OFFERED
   REJECTED
+}
+
+// ==========================================
+// ERP Inventory Module
+// ==========================================
+
+model Product {
+  id           String   @id @default(cuid())
+  name         String
+  sku          String
+  category     String?
+  currentStock Int      @default(0)
+  reorderLevel Int      @default(10)
+  unitPrice    Float    @default(0)
+  workspaceId  String
+
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  stockMovements StockMovement[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, sku])
+}
+
+model StockMovement {
+  id          String            @id @default(cuid())
+  productId   String
+  type        StockMovementType
+  quantity    Int
+  note        String?
+  date        DateTime          @default(now())
+  workspaceId String
+
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+enum StockMovementType {
+  IN
+  OUT
 }

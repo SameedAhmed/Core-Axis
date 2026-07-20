@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createAuditLog } from "./audit";
+import { linearForecast } from "@/lib/ai/forecast";
 
 async function requireUser() {
     const session = await getServerSession(authOptions);
@@ -23,29 +24,6 @@ function monthKey(date: Date) {
 
 function monthLabel(date: Date) {
     return date.toLocaleDateString("en-US", { month: "short" });
-}
-
-/** Simple linear regression (least squares) over (index, value) pairs. */
-function linearForecast(values: number[]): { nextValue: number; slope: number } {
-    const n = values.length;
-    if (n === 0) return { nextValue: 0, slope: 0 };
-    if (n === 1) return { nextValue: values[0], slope: 0 };
-
-    const xs = values.map((_, i) => i);
-    const meanX = xs.reduce((a, b) => a + b, 0) / n;
-    const meanY = values.reduce((a, b) => a + b, 0) / n;
-
-    let num = 0;
-    let den = 0;
-    for (let i = 0; i < n; i++) {
-        num += (xs[i] - meanX) * (values[i] - meanY);
-        den += (xs[i] - meanX) ** 2;
-    }
-    const slope = den === 0 ? 0 : num / den;
-    const intercept = meanY - slope * meanX;
-    const nextValue = Math.max(0, intercept + slope * n);
-
-    return { nextValue, slope };
 }
 
 /**

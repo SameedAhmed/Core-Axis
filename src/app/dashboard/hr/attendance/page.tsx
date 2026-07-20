@@ -1,187 +1,218 @@
 "use client";
 
-import React, { useState } from "react";
-import { Clock, Search, Filter, ArrowUpRight, CheckCircle2, XCircle, Timer, LogIn, LogOut } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Clock, Search, CheckCircle2, XCircle, Loader2, AlertTriangle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { getAttendanceOverview, getEmployees, markAttendance } from "@/lib/actions/hr";
 
-const DEMO_ATTENDANCE = [
-  { id: "ATT-001", name: "Sarah Jenkins", status: "Present", clockIn: "08:52 AM", clockOut: "05:30 PM", totalHours: "8h 38m", date: "2024-04-07" },
-  { id: "ATT-002", name: "Michael Chen", status: "Present", clockIn: "09:05 AM", clockOut: "06:15 PM", totalHours: "9h 10m", date: "2024-04-07" },
-  { id: "ATT-003", name: "Emma Watson", status: "On Leave", clockIn: "-", clockOut: "-", totalHours: "-", date: "2024-04-07" },
-  { id: "ATT-004", name: "David Miller", status: "Late", clockIn: "10:15 AM", clockOut: "07:05 PM", totalHours: "8h 50m", date: "2024-04-07" },
-  { id: "ATT-005", name: "Sophia Patel", status: "Present", clockIn: "08:45 AM", clockOut: "05:15 PM", totalHours: "8h 30m", date: "2024-04-07" },
-  { id: "ATT-006", name: "James Anderson", status: "Absent", clockIn: "-", clockOut: "-", totalHours: "-", date: "2024-04-07" },
-  { id: "ATT-007", name: "Isabella Rossi", status: "Present", clockIn: "08:58 AM", clockOut: "05:45 PM", totalHours: "8h 47m", date: "2024-04-07" },
-];
+interface AttendanceOverview {
+  totalMembers: number;
+  presentToday: number;
+  absentToday: number;
+  anomalies: { userId: string; name: string; absentCount: number; totalDays: number; absenceRate: number }[];
+  recent: { id: string; name: string; status: string; date: string }[];
+  hasData: boolean;
+}
 
 export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [data, setData] = useState<AttendanceOverview | null>(null);
+  const [employees, setEmployees] = useState<{ userId: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [markingId, setMarkingId] = useState<string | null>(null);
 
-  const filteredAttendance = DEMO_ATTENDANCE.filter(att => 
-    att.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  async function refresh() {
+    setLoading(true);
+    const [attRes, empRes] = await Promise.all([getAttendanceOverview(), getEmployees()]);
+    if (attRes.success) setData(attRes.data);
+    if (empRes.success) setEmployees(empRes.data);
+    setLoading(false);
+  }
 
-  const totalPresent = DEMO_ATTENDANCE.filter(a => a.status === 'Present' || a.status === 'Late').length;
-  const lateCount = DEMO_ATTENDANCE.filter(a => a.status === 'Late').length;
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  async function handleMark(userId: string, status: "PRESENT" | "ABSENT" | "HALF_DAY" | "ON_LEAVE") {
+    setMarkingId(userId);
+    const res = await markAttendance({ userId, status });
+    if (res.success) {
+      toast.success(`Marked ${status.replace("_", " ").toLowerCase()} for today`);
+      refresh();
+    } else {
+      toast.error(res.error);
+    }
+    setMarkingId(null);
+  }
+
+  const filteredEmployees = employees.filter((e) => e.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex items-center gap-3">
           <div className="bg-violet-500/10 p-3 rounded-xl border border-violet-500/20">
             <Clock className="text-violet-600 dark:text-violet-400 w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
-              Attendance Logs
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-500 bg-clip-text text-transparent">
+              Attendance Tracker
             </h1>
-            <p className="text-muted-foreground text-sm">Monitor workforce punctuality and daily presence.</p>
+            <p className="text-muted-foreground text-sm">Real attendance records with AI-based absence anomaly detection.</p>
           </div>
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button variant="outline" className="hidden sm:flex dark:border-border/50">
-             <Filter className="w-4 h-4 mr-2" /> Today's Log
-          </Button>
-          <Button className="bg-violet-600 hover:bg-violet-700 text-white w-full sm:w-auto shadow-lg shadow-violet-500/20">
-             <LogIn className="w-4 h-4 mr-2" /> Manual Entry
-          </Button>
         </div>
       </div>
 
-      {/* Real-time Status Card */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="border-border/50 shadow-sm bg-gradient-to-br from-background to-violet-50/10">
-           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] sm:text-xs font-bold text-violet-600 uppercase tracking-widest italic">Total Present</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-foreground">{totalPresent} <span className="text-sm font-normal text-muted-foreground">/ {DEMO_ATTENDANCE.length}</span></div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mt-2 flex items-center">
-               <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-500" /> Active on platform
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-amber-500/20 shadow-sm bg-amber-500/5">
-           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-widest italic">Late Arrivals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-amber-600">{lateCount}</div>
-            <p className="text-[10px] sm:text-xs text-amber-600/80 mt-2 flex items-center">
-               <Timer className="w-3 h-3 mr-1" /> After 09:00 AM
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-500/20 shadow-sm bg-red-500/5 col-span-1 md:col-span-2">
-           <CardHeader className="pb-2">
-            <CardTitle className="text-[10px] sm:text-xs font-bold text-red-600 uppercase tracking-widest italic">Today's Absences</CardTitle>
-          </CardHeader>
-          <CardContent className="flex justify-between items-end">
-            <div>
-               <div className="text-4xl font-black text-red-600">2</div>
-               <p className="text-[10px] sm:text-xs text-red-600/80 mt-2 flex items-center">
-                  <XCircle className="w-3 h-3 mr-1" /> 1 Absent, 1 On Leave
-               </p>
-            </div>
-            <div className="text-right pb-1">
-               <Button variant="link" size="sm" className="text-red-600 p-0 h-auto font-bold uppercase tracking-widest text-[9px]">Notify Managers →</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Attendance Table Area */}
-      <Card className="border-border/50 shadow-2xl shadow-black/5 overflow-hidden">
-        <CardHeader className="flex flex-row items-center justify-between py-5 border-b border-border/50 bg-muted/[0.15]">
-          <CardTitle className="text-lg font-bold">Attendance Matrix</CardTitle>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder="Filter by name..." 
-              className="pl-9 bg-background h-10 ring-offset-violet-500 text-sm font-medium"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+      {loading ? (
+        <div className="p-12 text-center text-muted-foreground flex flex-col items-center">
+          <Loader2 className="w-8 h-8 mb-3 animate-spin opacity-40" />
+          <p>Loading attendance data...</p>
+        </div>
+      ) : !data ? (
+        <div className="p-12 text-center text-muted-foreground">Failed to load attendance data.</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="border-border/50 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground">Team Size</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{data.totalMembers}</div>
+              </CardContent>
+            </Card>
+            <Card className="border-emerald-500/20 bg-emerald-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Present Today</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{data.presentToday}</div>
+              </CardContent>
+            </Card>
+            <Card className="border-red-500/20 bg-red-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wider text-red-700 dark:text-red-400">Absent Today</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-foreground">{data.absentToday}</div>
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader className="bg-muted/10">
-              <TableRow className="hover:bg-transparent">
-                <TableHead className="font-bold text-foreground pl-6">Employee</TableHead>
-                <TableHead className="font-bold text-foreground">Status</TableHead>
-                <TableHead className="font-bold text-foreground hidden sm:table-cell">Clock In</TableHead>
-                <TableHead className="font-bold text-foreground hidden sm:table-cell">Clock Out</TableHead>
-                <TableHead className="font-bold text-foreground pr-6 text-right">Total Hours</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredAttendance.map((att) => (
-                <TableRow key={att.id} className="group hover:bg-violet-500/[0.03] transition-colors">
-                  <TableCell className="pl-6">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8 ring-2 ring-background ring-offset-2 ring-offset-muted/20">
-                        <AvatarFallback className="bg-violet-100 text-violet-700 font-bold text-[10px] uppercase">
-                          {att.name.split(' ').map(n=>n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-bold text-foreground group-hover:text-violet-600 transition-colors text-sm">{att.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className={`
-                      px-3 py-1 font-black text-[9px] uppercase tracking-tighter
-                      ${att.status === 'Present' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 ring-inset ring-1 ring-emerald-500/20' : ''}
-                      ${att.status === 'Late' ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' : ''}
-                      ${att.status === 'Absent' ? 'bg-red-500/10 text-red-600 border-red-500/30' : ''}
-                      ${att.status === 'On Leave' ? 'bg-muted text-muted-foreground border-border' : ''}
-                    `}>
-                      {att.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-foreground italic">
-                       {att.clockIn !== '-' && <LogIn className="w-3 h-3 text-emerald-500" />}
-                       {att.clockIn}
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex items-center gap-2 text-xs font-semibold text-foreground italic">
-                       {att.clockOut !== '-' && <LogOut className="w-3 h-3 text-red-500" />}
-                       {att.clockOut}
-                    </div>
-                  </TableCell>
-                  <TableCell className="pr-6 text-right">
-                    <span className="font-black text-foreground text-sm tracking-widest">{att.totalHours}</span>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          
-          {filteredAttendance.length === 0 && (
-            <div className="p-20 text-center text-muted-foreground flex flex-col items-center">
-              <Clock className="w-16 h-16 mb-4 opacity-5" />
-              <p className="text-base font-bold opacity-30 tracking-widest uppercase">No attendance data matched.</p>
-            </div>
+
+          {data.anomalies.length > 0 && (
+            <Card className="border-red-500/20 bg-red-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2 text-red-600 dark:text-red-400">
+                  <AlertTriangle className="w-4 h-4" /> AI Attendance Risk &mdash; {data.anomalies.length} flagged
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {data.anomalies.map((a) => (
+                  <div key={a.userId} className="flex justify-between items-center text-sm bg-background/60 p-2.5 rounded-lg border border-red-500/10">
+                    <span className="font-medium">{a.name}</span>
+                    <span className="font-bold text-red-600">
+                      {a.absentCount}/{a.totalDays} days absent ({(a.absenceRate * 100).toFixed(0)}%)
+                    </span>
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground pt-1">
+                  Flagged automatically: absence rate is more than 2 standard deviations above the team average over the last 30 days.
+                </p>
+              </CardContent>
+            </Card>
           )}
-        </CardContent>
-      </Card>
-      
-      <div className="text-center italic text-xs text-muted-foreground opacity-50 font-medium tracking-tighter">
-         * System automatically calculates hours based on detected biometric or virtual clock-in nodes.
-      </div>
+
+          <Card className="border-border/50 shadow-xl shadow-black/5">
+            <CardHeader className="flex flex-row items-center justify-between py-4 border-b border-border/50 bg-muted/20">
+              <CardTitle className="text-lg">Mark Today&apos;s Attendance</CardTitle>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search team..."
+                  className="pl-9 bg-background h-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <Table>
+                <TableBody>
+                  {filteredEmployees.map((emp) => (
+                    <TableRow key={emp.userId} className="hover:bg-muted/30">
+                      <TableCell className="w-[280px]">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-violet-100 text-violet-700 font-bold text-xs uppercase">
+                              {emp.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium text-sm">{emp.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {markingId === emp.userId ? (
+                          <Loader2 className="w-4 h-4 animate-spin inline-block text-muted-foreground" />
+                        ) : (
+                          <div className="flex gap-2 justify-end">
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-emerald-600 border-emerald-500/30" onClick={() => handleMark(emp.userId, "PRESENT")}>
+                              <CheckCircle2 className="w-3 h-3 mr-1" /> Present
+                            </Button>
+                            <Button size="sm" variant="outline" className="h-7 text-xs text-red-600 border-red-500/30" onClick={() => handleMark(emp.userId, "ABSENT")}>
+                              <XCircle className="w-3 h-3 mr-1" /> Absent
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              {filteredEmployees.length === 0 && <div className="p-8 text-center text-muted-foreground text-sm">No team members found.</div>}
+            </CardContent>
+          </Card>
+
+          <Card className="border-border/50 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-md flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-violet-500" /> Recent Records
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {!data.hasData && <p className="text-sm text-muted-foreground">No attendance recorded yet.</p>}
+              <div className="space-y-2">
+                {data.recent.map((r) => (
+                  <div key={r.id} className="flex justify-between items-center text-sm bg-muted/30 p-2.5 rounded-lg border border-border/50">
+                    <span>{r.name}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">{new Date(r.date).toLocaleDateString()}</span>
+                      <Badge
+                        variant="outline"
+                        className={
+                          r.status === "PRESENT"
+                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                            : r.status === "ABSENT"
+                            ? "bg-red-500/10 text-red-600 border-red-500/20"
+                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                        }
+                      >
+                        {r.status}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

@@ -11,6 +11,7 @@ import { CapacityAlert } from "@/components/billing/capacity-alert";
 import { TrialBanner } from "@/components/billing/trial-banner";
 import { BrowserNotifications } from "@/components/notifications/browser-notifications";
 import { SyncProvider } from "@/components/layout/sync-provider";
+import { ChatbotWidget } from "@/components/layout/chatbot-widget";
 import { Separator } from "@/components/ui/separator";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 
@@ -128,6 +129,7 @@ export default async function DashboardLayout({
         <div className="flex bg-background min-h-screen text-foreground selection:bg-primary/20 overflow-x-hidden w-full max-w-[100vw]">
             <BrowserNotifications />
             <SyncProvider />
+            <ChatbotWidget />
             <Sidebar role={effectiveRole} workspaces={workspaces} activeWorkspaceId={activeWorkspaceId} isMaster={isMaster} planTier={planTier} />
             <main className="flex-1 md:ml-[260px] flex flex-col h-dvh overflow-hidden w-full">
                 {trialStatus && trialStatus.isActive && (

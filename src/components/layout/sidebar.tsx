@@ -21,7 +21,8 @@ import {
     CircleDollarSign,
     UsersRound,
     Clock,
-    UserCheck
+    UserCheck,
+    Boxes
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { switchWorkspace } from "@/lib/actions/workspaces";
@@ -50,6 +51,10 @@ const hrLinks = [
     { name: "Employees", href: "/dashboard/hr/employees", icon: UsersRound },
     { name: "Attendance", href: "/dashboard/hr/attendance", icon: Clock },
     { name: "Recruitment", href: "/dashboard/hr/recruitment", icon: UserCheck },
+];
+
+const inventoryLinks = [
+    { name: "Inventory Hub", href: "/dashboard/inventory", icon: Boxes },
 ];
 
 export function Sidebar({
@@ -203,7 +208,12 @@ export function Sidebar({
                             HR Module
                         </div>
                         {renderLinks(hrLinks, 'bg-violet-600 text-white shadow-lg shadow-violet-500/20 scale-[1.02]')}
-                        
+
+                        <div className="px-3 text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-[0.2em] mb-2 mt-6">
+                            Inventory Module
+                        </div>
+                        {renderLinks(inventoryLinks, 'bg-amber-600 text-white shadow-lg shadow-amber-500/20 scale-[1.02]')}
+
                     </nav>
                 </div>
             </div>
