@@ -207,3 +207,102 @@ export async function createExpense(rawData: any) {
         return { success: false, error: error.message || "Failed to create expense" };
     }
 }
+
+export async function getInvoices() {
+    try {
+        const user = await requireUser();
+        const workspaceId = (user as any).activeWorkspaceId || null;
+
+        const invoices = await (prisma as any).invoice.findMany({
+            where: { workspaceId },
+            include: { organization: { select: { name: true } } },
+            orderBy: { createdAt: "desc" },
+        });
+
+        return { success: true, data: invoices };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to fetch invoices", data: [] };
+    }
+}
+
+export async function getOrganizationOptions() {
+    try {
+        const user = await requireUser();
+        const workspaceId = (user as any).activeWorkspaceId || null;
+
+        const organizations = await prisma.organization.findMany({
+            where: { workspaceId },
+            select: { id: true, name: true },
+            orderBy: { name: "asc" },
+            take: 100,
+        });
+
+        return { success: true, data: organizations };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to fetch organizations", data: [] };
+    }
+}
+
+const invoiceSchema = z.object({
+    invoiceNumber: z.string().min(1),
+    amount: z.coerce.number().positive(),
+    status: z.enum(["PENDING", "PAID", "OVERDUE", "CANCELLED"]).default("PENDING"),
+    dueDate: z.string().min(1),
+    organizationId: z.string().optional().nullable(),
+    notes: z.string().optional(),
+});
+
+export async function createInvoice(rawData: any) {
+    try {
+        const user = await requireUser();
+        const workspaceId = (user as any).activeWorkspaceId || null;
+        if (!workspaceId) throw new Error("No active workspace");
+
+        const data = invoiceSchema.parse(rawData);
+
+        const invoice = await (prisma as any).invoice.create({
+            data: {
+                invoiceNumber: data.invoiceNumber,
+                amount: data.amount,
+                status: data.status,
+                dueDate: new Date(data.dueDate),
+                organizationId: data.organizationId || null,
+                notes: data.notes || null,
+                workspaceId,
+                createdById: user.id,
+            },
+        });
+
+        await createAuditLog({
+            action: "CREATE",
+            entityType: "INVOICE",
+            entityId: invoice.id,
+            details: `Created invoice #${invoice.invoiceNumber} ($${invoice.amount})`,
+        });
+
+        revalidatePath("/dashboard/finance");
+        revalidatePath("/dashboard/finance/invoices");
+        return { success: true, data: invoice };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to create invoice" };
+    }
+}
+
+export async function updateInvoiceStatus(id: string, status: "PENDING" | "PAID" | "OVERDUE" | "CANCELLED") {
+    try {
+        const user = await requireUser();
+        const workspaceId = (user as any).activeWorkspaceId || null;
+
+        const updated = await (prisma as any).invoice.updateMany({
+            where: { id, workspaceId },
+            data: { status },
+        });
+        if (updated.count === 0) throw new Error("Invoice not found");
+
+        revalidatePath("/dashboard/finance");
+        revalidatePath("/dashboard/finance/invoices");
+        return { success: true };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to update invoice" };
+    }
+}

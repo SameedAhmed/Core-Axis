@@ -103,6 +103,7 @@ model Workspace {
   candidates      Candidate[]
   products        Product[]
   stockMovements  StockMovement[]
+  financialReports FinancialReport[]
 }
 
 model CustomRole {
@@ -535,6 +536,29 @@ model StockMovement {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
+}
+
+// ==========================================
+// AI Financial Analyst
+// ==========================================
+
+model FinancialReport {
+  id              String   @id @default(cuid())
+  name            String
+  status          String // "PROFIT" | "LOSS" | "BREAKEVEN"
+  revenue         Float
+  expenses        Float
+  netProfit       Float
+  departments     Json // array of department-level metrics + AI directive
+  recommendations Json // executive summary, per-department action plans, strategic advice
+  workspaceId     String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
 }
 
 enum StockMovementType {

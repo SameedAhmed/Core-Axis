@@ -209,3 +209,82 @@ export async function markAttendance(rawData: any) {
         return { success: false, error: error.message || "Failed to mark attendance" };
     }
 }
+
+/**
+ * Aggregated summary for the HR Hub landing page: real headcount, today's
+ * attendance split, the last 5 weekdays' present/absent counts, and
+ * recruitment pipeline stats — all from real data, no hardcoded figures.
+ */
+export async function getHRDashboardSummary() {
+    try {
+        const user = await requireUser();
+        const workspaceId = (user as any).activeWorkspaceId || null;
+
+        const memberCount = await prisma.workspaceMember.count({ where: { workspaceId } });
+
+        const memberRows = await prisma.workspaceMember.findMany({
+            where: { workspaceId },
+            select: { userId: true },
+        });
+        const memberIds = memberRows.map((m) => m.userId);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayRecords = await (prisma as any).attendance.findMany({
+            where: { userId: { in: memberIds }, date: { gte: today } },
+        });
+        const presentToday = todayRecords.filter((r: any) => r.status === "PRESENT").length;
+        const attendanceRate = memberCount > 0 ? Math.round((presentToday / memberCount) * 100) : 0;
+
+        // Last 5 weekdays' present/absent counts, oldest first.
+        const weeklyTrend: { name: string; present: number; absent: number }[] = [];
+        const dayCursor = new Date(today);
+        const daysCollected: Date[] = [];
+        while (daysCollected.length < 5) {
+            dayCursor.setDate(dayCursor.getDate() - 1);
+            if (dayCursor.getDay() !== 0 && dayCursor.getDay() !== 6) daysCollected.push(new Date(dayCursor));
+        }
+        daysCollected.reverse();
+
+        if (daysCollected.length > 0) {
+            const rangeStart = daysCollected[0];
+            const rangeRecords = await (prisma as any).attendance.findMany({
+                where: { userId: { in: memberIds }, date: { gte: rangeStart, lte: today } },
+            });
+            for (const day of daysCollected) {
+                const dayEnd = new Date(day);
+                dayEnd.setDate(dayEnd.getDate() + 1);
+                const dayRecords = rangeRecords.filter((r: any) => new Date(r.date) >= day && new Date(r.date) < dayEnd);
+                weeklyTrend.push({
+                    name: day.toLocaleDateString("en-US", { weekday: "short" }),
+                    present: dayRecords.filter((r: any) => r.status === "PRESENT").length,
+                    absent: dayRecords.filter((r: any) => r.status === "ABSENT").length,
+                });
+            }
+        }
+
+        const candidates = await (prisma as any).candidate.findMany({ where: { workspaceId } });
+        const topMatches = [...candidates]
+            .filter((c: any) => c.aiScore !== null)
+            .sort((a: any, b: any) => (b.aiScore ?? 0) - (a.aiScore ?? 0))
+            .slice(0, 3)
+            .map((c: any) => ({ name: c.name, role: c.appliedRole, score: c.aiScore }));
+
+        return {
+            success: true,
+            data: {
+                headcount: memberCount,
+                attendanceRate,
+                presentToday,
+                absentToday: memberCount - presentToday,
+                weeklyTrend,
+                totalApplicants: candidates.length,
+                interviewsScheduled: candidates.filter((c: any) => c.status === "INTERVIEWING").length,
+                openRoles: new Set(candidates.map((c: any) => c.appliedRole)).size,
+                topMatches,
+            },
+        };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to load HR summary" };
+    }
+}

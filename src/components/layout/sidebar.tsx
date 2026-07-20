@@ -22,7 +22,8 @@ import {
     UsersRound,
     Clock,
     UserCheck,
-    Boxes
+    Boxes,
+    Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { switchWorkspace } from "@/lib/actions/workspaces";
@@ -44,6 +45,7 @@ const financeLinks = [
     { name: "Finance Hub", href: "/dashboard/finance", icon: BarChart2 },
     { name: "Expenses", href: "/dashboard/finance/expenses", icon: Wallet },
     { name: "Invoices", href: "/dashboard/finance/invoices", icon: ReceiptText },
+    { name: "AI Analyst", href: "/dashboard/finance/analyst", icon: Sparkles },
 ];
 
 const hrLinks = [
