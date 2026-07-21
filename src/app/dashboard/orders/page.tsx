@@ -4,8 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { getEffectiveRole, getScopeWhere } from "@/lib/permissions";
 import { redirect } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { CheckCircle2, UserCircle } from "lucide-react";
+import { CheckCircle2, UserCircle, ClipboardCheck } from "lucide-react";
 import { OrdersList } from "@/components/deals/orders-list";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -38,19 +39,13 @@ export default async function OrdersPage() {
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-8 flex-col items-start gap-2">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-                        Orders Control
-                        <span className="px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 border border-blue-500/20 text-xs font-bold tracking-wider uppercase">
-                            {onboardedDeals.length} Orders
-                        </span>
-                    </h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                        Manage confirmed sales and track deals currently in the fulfillment process.
-                    </p>
-                </div>
-            </div>
+            <PageHeader
+                icon={<ClipboardCheck />}
+                theme="navy"
+                title="Orders Control"
+                subtitle="Manage confirmed sales and track deals currently in the fulfillment process."
+                badgeText={`${onboardedDeals.length} Orders`}
+            />
 
             <OrdersList 
                 onboardedDeals={onboardedDeals as any[]} 

@@ -6,6 +6,10 @@ import { getLeadFormSuggestions } from "@/lib/actions/leads";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getScopeWhere, getEffectiveRole } from "@/lib/permissions";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { LeadIntelligencePanel } from "@/components/leads/lead-intelligence-panel";
+import { getLeadScores } from "@/lib/actions/lead-intelligence";
+import { Users } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -34,18 +38,21 @@ export default async function LeadsPage() {
         getLeadFormSuggestions()
     ]);
 
-    const suggestions = suggestionsRes.success && suggestionsRes.data 
-        ? suggestionsRes.data 
+    const suggestions = suggestionsRes.success && suggestionsRes.data
+        ? suggestionsRes.data
         : { services: [], sources: [] };
 
+    const scoresRes = await getLeadScores();
+    const leadScores = scoresRes.success && scoresRes.data ? scoresRes.data.scores : undefined;
 
     return (
         <div className="space-y-6 flex flex-col h-full">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-4 sm:p-6 rounded-2xl border border-border/50 shadow-sm transition-all duration-300">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">Leads</h1>
-                    <p className="text-sm text-muted-foreground font-medium mt-1">Manage and track your incoming prospects.</p>
-                </div>
+            <PageHeader
+                icon={<Users />}
+                theme="navy"
+                title="Leads"
+                subtitle="Manage and track your incoming prospects."
+                actions={
                 <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 sm:gap-3 w-full sm:w-auto">
                     <div className="flex-1 sm:flex-none">
                         <ImportLeadsDialog />
@@ -54,8 +61,12 @@ export default async function LeadsPage() {
                         <CreateLeadDialog organizations={organizations as any} suggestions={suggestions} />
                     </div>
                 </div>
-            </div>
-            <LeadList data={leads} organizations={organizations as any} suggestions={suggestions} />
+                }
+            />
+            {scoresRes.success && scoresRes.data && leads.length > 0 && (
+                <LeadIntelligencePanel result={scoresRes.data} leads={leads as any} />
+            )}
+            <LeadList data={leads} organizations={organizations as any} suggestions={suggestions} leadScores={leadScores} />
         </div>
     );
 }

@@ -131,7 +131,7 @@ export function DealBoard({ data, effectiveRole, organizations, dealStages }: De
 
     const getColorVars = (color: string) => {
         switch (color) {
-            case "blue": return { header: "bg-blue-500/10 text-blue-700", border: "border-blue-500/20", columnColor: "bg-blue-500/[0.02]" };
+            case "blue": return { header: "bg-navy/10 text-navy dark:text-blue-300", border: "border-navy/20", columnColor: "bg-navy/[0.02]" };
             case "amber": return { header: "bg-amber-500/10 text-amber-700", border: "border-amber-500/20", columnColor: "bg-amber-500/[0.02]" };
             case "indigo": return { header: "bg-indigo-500/10 text-indigo-700", border: "border-indigo-500/20", columnColor: "bg-indigo-500/[0.02]" };
             case "red": return { header: "bg-red-500/10 text-red-700", border: "border-red-500/20", columnColor: "bg-red-500/[0.02]" };
@@ -158,7 +158,7 @@ export function DealBoard({ data, effectiveRole, organizations, dealStages }: De
                 <div className="flex items-center gap-4 px-2">
                     <div className="flex flex-col items-end">
                         <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Total Pipeline</span>
-                        <span className="text-lg font-black text-primary leading-none">
+                        <span className="text-lg font-black text-navy dark:text-blue-300 leading-none">
                             ${deals.filter(d => 
                                 d.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                                 d.organization?.name?.toLowerCase().includes(searchQuery.toLowerCase())

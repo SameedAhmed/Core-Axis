@@ -126,6 +126,52 @@ export async function getInventoryOverview() {
 
         const lowStockCount = productInsights.filter((p: any) => p.needsReorder).length;
         const totalStockValue = products.reduce((sum: number, p: any) => sum + p.currentStock * p.unitPrice, 0);
+        const trendingUp = productInsights.filter((p: any) => p.trend === "up");
+        const trendingDown = productInsights.filter((p: any) => p.trend === "down");
+        const totalReorderValue = productInsights
+            .filter((p: any) => p.needsReorder)
+            .reduce((sum: number, p: any) => {
+                const product = products.find((pr: any) => pr.id === p.id);
+                return sum + p.suggestedReorderQty * (product?.unitPrice || 0);
+            }, 0);
+
+        // Aggregate weekly demand across all products (6 real weeks) + 1
+        // forecasted week (sum of each product's own Holt's forecast) — a
+        // portfolio-level view of the same per-product AI forecasting.
+        const demandChart: { name: string; demand: number; forecast?: number }[] = [];
+        for (let i = 5; i >= 0; i--) {
+            const bucket = currentWeek - i;
+            const totalDemand = movements
+                .filter((m: any) => m.type === "OUT" && weekKey(new Date(m.date)) === bucket)
+                .reduce((sum: number, m: any) => sum + m.quantity, 0);
+            demandChart.push({ name: `Wk -${i}`, demand: totalDemand });
+        }
+        const totalForecastedDemand = productInsights.reduce((sum: number, p: any) => sum + p.forecastedWeeklyDemand, 0);
+        demandChart.push({ name: "Next Wk", demand: 0, forecast: totalForecastedDemand });
+        // Carry the last real point into forecast too, so the chart line connects visually.
+        if (demandChart.length >= 2) {
+            (demandChart[demandChart.length - 2] as any).forecast = demandChart[demandChart.length - 2].demand;
+        }
+
+        // Local, deterministic AI insights narrative — no external API,
+        // grounded entirely in the numbers computed above.
+        const riskFactors: string[] = [];
+        const needsReorderList = productInsights.filter((p: any) => p.needsReorder);
+        if (needsReorderList.length > 0) {
+            riskFactors.push(`${needsReorderList.length} product(s) need reordering: ${needsReorderList.map((p: any) => p.name).join(", ")}`);
+        }
+        if (trendingUp.length > 0) {
+            riskFactors.push(`Rising demand detected for ${trendingUp.map((p: any) => p.name).join(", ")} — reorder points will need revisiting sooner than usual`);
+        }
+        if (totalReorderValue > 0) {
+            riskFactors.push(`Recommended reorders represent $${totalReorderValue.toLocaleString("en-US", { maximumFractionDigits: 0 })} in purchasing value`);
+        }
+
+        const summary = products.length === 0
+            ? "No products tracked yet — add one to start generating AI demand forecasts."
+            : lowStockCount === 0
+                ? `All ${products.length} products are within healthy stock levels. Forecasted portfolio demand next week is ${totalForecastedDemand} units, ${trendingUp.length > trendingDown.length ? "trending upward" : trendingDown.length > trendingUp.length ? "trending downward" : "stable"} overall.`
+                : `${lowStockCount} of ${products.length} products need attention. Forecasted portfolio demand next week is ${totalForecastedDemand} units (${trendingUp.length} products trending up, ${trendingDown.length} trending down). Recommended reorders total $${totalReorderValue.toLocaleString("en-US", { maximumFractionDigits: 0 })}.`;
 
         return {
             success: true,
@@ -134,6 +180,11 @@ export async function getInventoryOverview() {
                 totalProducts: products.length,
                 lowStockCount,
                 totalStockValue,
+                totalReorderValue,
+                trendingUpCount: trendingUp.length,
+                trendingDownCount: trendingDown.length,
+                demandChart,
+                insights: { summary, riskFactors },
                 hasData: products.length > 0,
             },
         };

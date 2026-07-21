@@ -56,7 +56,7 @@ export function OverviewCharts({ trendData, funnelData }: OverviewChartsProps) {
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-muted-foreground font-medium">Value:</span>
-                        <span className="text-sm font-bold text-primary">
+                        <span className="text-sm font-bold text-navy dark:text-blue-300">
                             {new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(payload[0].payload.amount)}
                         </span>
                     </div>

@@ -124,7 +124,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                             bgClass = "bg-green-100 text-green-600";
                         } else if (activity.type === "EMAIL") {
                             Icon = Mail;
-                            bgClass = "bg-blue-100 text-blue-600";
+                            bgClass = "bg-navy/10 text-navy";
                         } else if (activity.type === "MEETING") {
                             Icon = Calendar;
                             bgClass = "bg-purple-100 text-purple-600";
@@ -214,7 +214,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                         <div className="flex items-center gap-1.5">
                             <Button
                                 variant="outline"
-                                className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                                className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                                 onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
                                 disabled={pageIndex === 0}
                             >
@@ -223,7 +223,7 @@ export function ActivityTimeline({ activities }: ActivityTimelineProps) {
                             </Button>
                             <Button
                                 variant="outline"
-                                className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                                className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                                 onClick={() => setPageIndex(Math.min(pageCount - 1, pageIndex + 1))}
                                 disabled={pageIndex >= pageCount - 1}
                             >

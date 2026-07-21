@@ -59,13 +59,13 @@ export default async function DealsPage({
                     <div className="flex gap-6 text-sm font-bold border-b border-border/50">
                         <Link
                             href="/dashboard/deals?view=kanban"
-                            className={`pb-2 transition-all ${view === 'kanban' || view === 'list' ? 'text-primary border-b-2 border-primary translate-y-0.5' : 'text-muted-foreground hover:text-foreground'}`}
+                            className={`pb-2 transition-all ${view === 'kanban' || view === 'list' ? 'text-navy dark:text-blue-300 border-b-2 border-navy translate-y-0.5' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             Kanban Board
                         </Link>
                         <Link
                             href="/dashboard/deals?view=forecast"
-                            className={`pb-2 transition-all ${view === 'forecast' ? 'text-primary border-b-2 border-primary translate-y-0.5' : 'text-muted-foreground hover:text-foreground'}`}
+                            className={`pb-2 transition-all ${view === 'forecast' ? 'text-navy dark:text-blue-300 border-b-2 border-navy translate-y-0.5' : 'text-muted-foreground hover:text-foreground'}`}
                         >
                             Forecast Area
                         </Link>

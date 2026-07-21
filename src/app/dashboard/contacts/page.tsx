@@ -6,6 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getScopeWhere, getEffectiveRole } from "@/lib/permissions";
 import { UserCircle2 } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 export const dynamic = "force-dynamic";
 
@@ -34,14 +35,12 @@ export default async function ContactsPage() {
 
     return (
         <div className="space-y-6 flex flex-col h-full">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-4 sm:p-6 rounded-2xl border border-border/50 shadow-sm transition-all duration-300">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-white flex items-center gap-3">
-                        <UserCircle2 className="w-7 h-7 sm:w-8 sm:h-8 text-primary" />
-                        Contacts
-                    </h1>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400 font-medium mt-1">Manage your people and relationships across all workspaces.</p>
-                </div>
+            <PageHeader
+                icon={<UserCircle2 />}
+                theme="navy"
+                title="Contacts"
+                subtitle="Manage your people and relationships across all workspaces."
+                actions={
                 <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 sm:gap-3 w-full sm:w-auto mt-2 sm:mt-0">
                     <div className="flex-1 sm:flex-none">
                         <ImportContactsDialog />
@@ -50,7 +49,8 @@ export default async function ContactsPage() {
                         <CreateContactDialog organizations={organizations as any} />
                     </div>
                 </div>
-            </div>
+                }
+            />
             
             <ContactList data={contacts} organizations={organizations as any} />
         </div>

@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { OverviewCharts } from "@/components/dashboard/overview-charts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Activity, Target, CheckCircle2, TrendingUp } from "lucide-react";
+import { StatCard } from "@/components/dashboard/stat-card";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -133,8 +132,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
                 <div className="space-y-1">
                     <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-3 flex-wrap leading-tight">
                         Executive Dashboard
-                        <span className="inline-flex items-center rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] sm:text-[11px] uppercase tracking-widest font-black py-1 px-3 shadow-sm">
-                            <span className="w-2 h-2 rounded-full bg-primary animate-pulse mr-2" />
+                        <span className="inline-flex items-center rounded-full bg-navy/10 text-navy dark:text-blue-300 border border-navy/20 text-[10px] sm:text-[11px] uppercase tracking-widest font-black py-1 px-3 shadow-sm">
+                            <span className="w-2 h-2 rounded-full bg-navy animate-pulse mr-2" />
                             Live
                         </span>
                     </h2>
@@ -160,84 +159,39 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
             {/* Stat Cards — each one is a clickable Link */}
             <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                {/* Card 1: Revenue */}
-                <Link href="/dashboard/deals?view=forecast" className="block group">
-                    <Card className="relative overflow-hidden shadow-sm hover:shadow-2xl border-border/60 bg-card transition-all duration-500 rounded-3xl transform hover:-translate-y-1.5 cursor-pointer h-full">
-                        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700" />
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-5 px-5 sm:p-6 sm:pb-2 relative z-10">
-                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Revenue</CardTitle>
-                            <div className="bg-primary/10 text-primary p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 border border-primary/20 shadow-sm">
-                                <Target className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent className="relative z-10 px-5 sm:px-6 pb-6 sm:pb-6">
-                            <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{formatCurrency(totalWon)}</div>
-                            <div className="mt-2 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-primary bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/10 shadow-sm">
-                                <TrendingUp className="h-3 w-3" />
-                                Won Items
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                {/* Card 2: Active Deals */}
-                <Link href="/dashboard/deals" className="block group">
-                    <Card className="relative overflow-hidden shadow-sm hover:shadow-2xl border-border/60 bg-card transition-all duration-500 rounded-3xl transform hover:-translate-y-1.5 cursor-pointer h-full">
-                        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700" />
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-5 px-5 sm:p-6 sm:pb-2 relative z-10">
-                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Pipeline</CardTitle>
-                            <div className="bg-primary/10 text-primary p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 border border-primary/20 shadow-sm">
-                                <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent className="relative z-10 px-5 sm:px-6 pb-6 sm:pb-6">
-                            <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{activeDeals}</div>
-                            <div className="mt-2 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-primary bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/10 shadow-sm">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                {formatCurrency(totalPipelineValue)}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                {/* Card 3: Conversion Rate */}
-                <Link href="/dashboard/leads" className="block group">
-                    <Card className="relative overflow-hidden shadow-sm hover:shadow-2xl border-border/60 bg-card transition-all duration-500 rounded-3xl transform hover:-translate-y-1.5 cursor-pointer h-full">
-                        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700" />
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-5 px-5 sm:p-6 sm:pb-2 relative z-10">
-                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Conversion</CardTitle>
-                            <div className="bg-primary/10 text-primary p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 border border-primary/20 shadow-sm">
-                                <CheckCircle2 className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent className="relative z-10 px-5 sm:px-6 pb-6 sm:pb-6">
-                            <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{conversionRate}%</div>
-                            <div className="mt-2 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-primary bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/10 shadow-sm">
-                                <TrendingUp className="h-3 w-3" />
-                                {convertedLeads} Won
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
-
-                {/* Card 4: Activities */}
-                <Link href="/dashboard/activities" className="block group">
-                    <Card className="relative overflow-hidden shadow-sm hover:shadow-2xl border-border/60 bg-card transition-all duration-500 rounded-3xl transform hover:-translate-y-1.5 cursor-pointer h-full">
-                        <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-700" />
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-5 px-5 sm:p-6 sm:pb-2 relative z-10">
-                            <CardTitle className="text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60">Activities</CardTitle>
-                            <div className="bg-primary/10 text-primary p-2.5 rounded-2xl group-hover:rotate-12 transition-all duration-500 border border-primary/20 shadow-sm">
-                                <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
-                            </div>
-                        </CardHeader>
-                        <CardContent className="relative z-10 px-5 sm:px-6 pb-6 sm:pb-6">
-                            <div className="text-2xl sm:text-3xl font-black tracking-tighter text-foreground">{totalActivities}</div>
-                            <div className="mt-2 flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold text-primary bg-primary/10 w-fit px-3 py-1 rounded-full border border-primary/10 shadow-sm">
-                                Interactions
-                            </div>
-                        </CardContent>
-                    </Card>
-                </Link>
+                <StatCard
+                    label="Revenue"
+                    value={formatCurrency(totalWon)}
+                    icon={<Target />}
+                    theme="navy"
+                    href="/dashboard/deals?view=forecast"
+                    trend={{ icon: <TrendingUp />, text: "Won Items" }}
+                />
+                <StatCard
+                    label="Pipeline"
+                    value={activeDeals}
+                    icon={<Briefcase />}
+                    theme="navy"
+                    href="/dashboard/deals"
+                    pulse
+                    trend={{ text: formatCurrency(totalPipelineValue) }}
+                />
+                <StatCard
+                    label="Conversion"
+                    value={`${conversionRate}%`}
+                    icon={<CheckCircle2 />}
+                    theme="navy"
+                    href="/dashboard/leads"
+                    trend={{ icon: <TrendingUp />, text: `${convertedLeads} Won` }}
+                />
+                <StatCard
+                    label="Activities"
+                    value={totalActivities}
+                    icon={<Activity />}
+                    theme="navy"
+                    href="/dashboard/activities"
+                    trend={{ text: "Interactions" }}
+                />
             </div>
 
             {/* Charts */}

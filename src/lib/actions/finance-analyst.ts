@@ -16,6 +16,8 @@ import {
     type FinancialLineItem,
     type FinancialAnalysisResult,
 } from "@/lib/ai/financial-intelligence";
+import { evaluateModel } from "@/lib/ai/naive-bayes";
+import { FINANCIAL_TRAINING_DATA } from "@/lib/ai/financial-training-data";
 
 async function requireUser() {
     const session = await getServerSession(authOptions);
@@ -25,6 +27,23 @@ async function requireUser() {
     if (!user) throw new Error("User not found");
 
     return user;
+}
+
+/**
+ * Returns the Naive Bayes classifier's measured performance on a held-out
+ * test split of our own labeled dataset, plus a sample of the training data
+ * so it can be shown in the UI. This is real evaluation, computed live from
+ * the actual dataset — not a hardcoded figure.
+ */
+export async function getModelPerformance() {
+    try {
+        await requireUser();
+        const evaluation = evaluateModel(FINANCIAL_TRAINING_DATA);
+        const sample = FINANCIAL_TRAINING_DATA.filter((_, i) => i % 17 === 0).slice(0, 12);
+        return { success: true, data: { evaluation, sample } };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to evaluate model" };
+    }
 }
 
 interface AnalyzeInput {

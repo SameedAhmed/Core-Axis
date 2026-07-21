@@ -54,17 +54,45 @@ import { isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { useRouter } from "next/navigation";
 
 
+interface LeadScore {
+    score: number;
+    band: "HOT" | "WARM" | "COLD";
+    method: "model" | "heuristic";
+    reasons: string[];
+}
+
 interface LeadListProps {
-    data: (Lead & { 
+    data: (Lead & {
         organization?: { id: string; name: string } | null;
         owner?: { id: string; name: string | null; email: string | null } | null;
         createdBy?: { id: string; name: string | null; email: string | null } | null;
     })[];
     organizations: { id: string; name: string }[];
     suggestions?: { services: string[]; sources: string[] };
+    leadScores?: Record<string, LeadScore>;
 }
 
-export function LeadList({ data, organizations, suggestions }: LeadListProps) {
+/** Compact AI conversion-score pill used in both the table and the mobile cards. */
+function ScorePill({ s }: { s?: LeadScore }) {
+    if (!s) return <span className="text-[11px] text-muted-foreground/50">—</span>;
+    const color =
+        s.band === "HOT"
+            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+            : s.band === "WARM"
+            ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+            : "bg-muted text-muted-foreground border-border/50";
+    return (
+        <div
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 font-bold text-[11px] ${color}`}
+            title={`${s.method === "model" ? "Trained model" : "Heuristic"} • ${s.reasons.join(" · ") || "No strong signals"}`}
+        >
+            <span>{s.score}</span>
+            <span className="text-[9px] font-black uppercase tracking-wider opacity-70">{s.band}</span>
+        </div>
+    );
+}
+
+export function LeadList({ data, organizations, suggestions, leadScores }: LeadListProps) {
     const { data: session } = useSession();
     const { confirm } = useConfirm();
     const router = useRouter();
@@ -310,7 +338,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
             cell: ({ row }) => {
                 const source = (row.original as any).source || "MANUAL";
                 const sourceColors: Record<string, string> = {
-                    META_ADS: "bg-blue-50 text-blue-700 border-blue-200",
+                    META_ADS: "bg-navy/10 text-navy border-navy/20",
                     IMPORT: "bg-muted text-foreground border-border",
                     MANUAL: "bg-indigo-50 text-indigo-700 border-indigo-200",
                     WP_SYNC: "bg-purple-50 text-purple-700 border-purple-200",
@@ -347,7 +375,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
             cell: ({ row }) => {
                 const status = row.getValue("status") as string;
                 const colorMap: Record<string, string> = {
-                    NEW: "bg-blue-100 text-blue-800",
+                    NEW: "bg-navy/10 text-navy",
                     CONTACTED: "bg-yellow-100 text-yellow-800",
                     QUALIFIED: "bg-purple-100 text-purple-800",
                     CONVERTED: "bg-green-100 text-green-800",
@@ -359,6 +387,27 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                     </Badge>
                 );
             },
+        },
+        {
+            id: "aiScore",
+            accessorFn: (row) => leadScores?.[row.id]?.score ?? -1,
+            header: ({ column }) => (
+                <Button
+                    variant="ghost"
+                    className="text-[11px] font-black uppercase tracking-wider p-0 hover:bg-transparent"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    AI Score
+                    {column.getIsSorted() === "asc" ? (
+                        <ChevronUp className="ml-2 h-3 w-3" />
+                    ) : column.getIsSorted() === "desc" ? (
+                        <ChevronDown className="ml-2 h-3 w-3" />
+                    ) : (
+                        <ArrowUpDown className="ml-2 h-3 w-3 opacity-50" />
+                    )}
+                </Button>
+            ),
+            cell: ({ row }) => <ScorePill s={leadScores?.[row.original.id]} />,
         },
         ...(isManagerOrAdmin ? [{
             id: "assignee",
@@ -386,7 +435,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                 return (
                     <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6">
-                            <AvatarFallback className="text-[9px] bg-primary/10 text-primary font-bold">
+                            <AvatarFallback className="text-[9px] bg-navy/10 text-navy font-bold">
                                 {owner?.name?.substring(0, 2).toUpperCase() || "UN"}
                             </AvatarFallback>
                         </Avatar>
@@ -566,7 +615,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
             </div>
 
             {selectedIds.size > 0 && (
-                <div className="mb-4 p-3 bg-primary text-primary-foreground rounded-lg flex items-center justify-between animate-in slide-in-from-top-2 duration-300 shadow-xl border border-white/10">
+                <div className="mb-4 p-3 bg-navy text-white rounded-lg flex items-center justify-between animate-in slide-in-from-top-2 duration-300 shadow-xl border border-white/10">
                     <div className="flex items-center gap-3">
                         <div className="bg-white/20 p-1.5 rounded-md">
                             <ShieldAlert className="w-4 h-4 text-indigo-400" />
@@ -579,7 +628,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="text-primary-foreground/70 hover:text-primary-foreground hover:bg-white/10"
+                            className="text-white/70 hover:text-white hover:bg-white/10"
                             onClick={() => setSelectedIds(new Set())}
                         >
                             Deselect all
@@ -611,7 +660,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                         const date = new Date(lead.createdAt);
                         const source = (lead as any).source || "MANUAL";
                         const sourceColors: Record<string, string> = {
-                            META_ADS: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800",
+                            META_ADS: "bg-navy/10 text-navy border-navy/20 dark:bg-navy/20 dark:text-blue-300 dark:border-navy/40",
                             IMPORT: "bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700",
                             MANUAL: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800",
                         };
@@ -663,12 +712,13 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                                         {source.replace("_", " ")}
                                     </Badge>
                                     <Badge className={`font-bold text-[10px] tracking-wider uppercase px-2 py-0.5 rounded-full ${
-                                        lead.status === 'NEW' ? 'bg-blue-500/10 text-blue-600 border-blue-200 dark:border-blue-900/50' :
-                                        lead.status === 'CONTACTED' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-900/50' : 
+                                        lead.status === 'NEW' ? 'bg-navy/10 text-navy border-navy/20 dark:border-navy/40' :
+                                        lead.status === 'CONTACTED' ? 'bg-yellow-500/10 text-yellow-600 border-yellow-200 dark:border-yellow-900/50' :
                                         'bg-green-500/10 text-green-600 border-green-200 dark:border-green-900/50'
                                     }`}>
                                         {lead.status === "CONVERTED" ? "IN SALES PIPELINE" : lead.status}
                                     </Badge>
+                                    <ScorePill s={leadScores?.[lead.id]} />
                                 </div>
 
                                 <div className="flex items-center justify-between pt-4 border-t border-border/40">
@@ -676,7 +726,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                                         {lead.owner && (
                                             <div className="flex items-center gap-2 bg-muted/50 px-2 py-1 rounded-lg">
                                                 <Avatar className="h-5 w-5">
-                                                    <AvatarFallback className="text-[8px] font-black uppercase bg-primary/10 text-primary">
+                                                    <AvatarFallback className="text-[8px] font-black uppercase bg-navy/10 text-navy">
                                                         {lead.owner.name?.substring(0, 2).toUpperCase() || "UN"}
                                                     </AvatarFallback>
                                                 </Avatar>
@@ -821,7 +871,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                     <div className="flex items-center gap-1.5">
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
                         >
@@ -830,7 +880,7 @@ export function LeadList({ data, organizations, suggestions }: LeadListProps) {
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
                         >

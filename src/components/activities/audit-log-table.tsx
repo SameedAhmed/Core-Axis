@@ -67,7 +67,7 @@ export function AuditLogTable({ data }: AuditLogTableProps) {
             case "UPDATE": return <Edit className="w-3.5 h-3.5 text-amber-500" />;
             case "DELETE":
             case "BULK_DELETE": return <Trash2 className="w-3.5 h-3.5 text-red-500" />;
-            case "BULK_IMPORT": return <Upload className="w-3.5 h-3.5 text-blue-500" />;
+            case "BULK_IMPORT": return <Upload className="w-3.5 h-3.5 text-navy dark:text-blue-300" />;
             case "LOGIN": return <LogIn className="w-3.5 h-3.5 text-indigo-500" />;
             default: return <Activity className="w-3.5 h-3.5 text-muted-foreground" />;
         }
@@ -405,7 +405,7 @@ export function AuditLogTable({ data }: AuditLogTableProps) {
                     <div className="flex items-center gap-1.5">
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
                         >
@@ -414,7 +414,7 @@ export function AuditLogTable({ data }: AuditLogTableProps) {
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
                         >

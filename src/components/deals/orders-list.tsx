@@ -128,7 +128,7 @@ export function OrdersList({ onboardedDeals, effectiveRole, dealStages }: Orders
                                 <div className="flex items-center gap-4 opacity-70 group-hover:opacity-100 transition-opacity">
                                     <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-lg border border-border shadow-sm">
                                         <Avatar className="w-7 h-7 border-2 border-background shadow-sm">
-                                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                                            <AvatarFallback className="bg-navy/10 text-navy text-xs font-bold">
                                                 {deal.owner?.name?.substring(0,2).toUpperCase() || "UN"}
                                             </AvatarFallback>
                                         </Avatar>
@@ -181,7 +181,7 @@ export function OrdersList({ onboardedDeals, effectiveRole, dealStages }: Orders
                     <div className="flex items-center gap-1.5">
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
                             disabled={pageIndex === 0}
                         >
@@ -190,7 +190,7 @@ export function OrdersList({ onboardedDeals, effectiveRole, dealStages }: Orders
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => setPageIndex(Math.min(pageCount - 1, pageIndex + 1))}
                             disabled={pageIndex >= pageCount - 1}
                         >

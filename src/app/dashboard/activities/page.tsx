@@ -4,6 +4,7 @@ import { ActivityTimeline } from "@/components/activities/activity-timeline";
 import { AuditLogTable } from "@/components/activities/audit-log-table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { History, Activity as ActivityIcon } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
 
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
@@ -72,17 +73,17 @@ export default async function ActivitiesPage() {
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-card p-4 sm:p-6 rounded-2xl border border-border/50 shadow-sm transition-all duration-300">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">Activity & Audit Center</h1>
-                    <p className="text-sm text-muted-foreground mt-1 font-medium leading-relaxed max-w-2xl">
-                        Track sales interactions and system-wide user actions.
-                    </p>
-                </div>
+            <PageHeader
+                icon={<ActivityIcon />}
+                theme="navy"
+                title="Activity & Audit Center"
+                subtitle="Track sales interactions and system-wide user actions."
+                actions={
                 <div className="w-full sm:w-auto">
                     <CreateActivityDialog leads={leads as any} deals={deals as any} />
                 </div>
-            </div>
+                }
+            />
 
             <Tabs defaultValue="sales" className="w-full">
                 <TabsList className="bg-muted p-1 rounded-xl mb-6 w-full">

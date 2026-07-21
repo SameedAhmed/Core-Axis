@@ -161,7 +161,7 @@ export function ContactList({ data, organizations = [] }: ContactListProps) {
                                         {contact.firstName} {contact.lastName}
                                     </h3>
                                     <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-medium">
-                                        <Building2 className="w-3.5 h-3.5 text-primary/60" />
+                                        <Building2 className="w-3.5 h-3.5 text-navy/60 dark:text-blue-300/60" />
                                         {contact.organization?.name || "Independent"}
                                     </div>
                                 </div>
@@ -196,13 +196,13 @@ export function ContactList({ data, organizations = [] }: ContactListProps) {
                             <div className="space-y-2.5 bg-muted/30 p-3 rounded-xl border border-border/40">
                                 <div className="flex items-center gap-3 text-sm font-medium text-foreground/80">
                                     <div className="bg-background p-1.5 rounded-lg border border-border/40">
-                                        <Mail className="w-3.5 h-3.5 text-primary" />
+                                        <Mail className="w-3.5 h-3.5 text-navy dark:text-blue-300" />
                                     </div>
                                     <span className="truncate">{contact.email || "No email available"}</span>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm font-medium text-foreground/80">
                                     <div className="bg-background p-1.5 rounded-lg border border-border/40">
-                                        <Phone className="w-3.5 h-3.5 text-primary" />
+                                        <Phone className="w-3.5 h-3.5 text-navy dark:text-blue-300" />
                                     </div>
                                     <span>{contact.phone || "No phone number"}</span>
                                 </div>
@@ -243,19 +243,19 @@ export function ContactList({ data, organizations = [] }: ContactListProps) {
                                     </TableCell>
                                     <TableCell className="px-5 py-3.5">
                                         <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
-                                            <Mail className="w-3.5 h-3.5 text-primary/60" />
+                                            <Mail className="w-3.5 h-3.5 text-navy/60 dark:text-blue-300/60" />
                                             {contact.email || <span className="italic opacity-50">N/A</span>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-3.5">
                                         <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
-                                            <Phone className="w-3.5 h-3.5 text-primary/60" />
+                                            <Phone className="w-3.5 h-3.5 text-navy/60 dark:text-blue-300/60" />
                                             {contact.phone || <span className="italic opacity-50">N/A</span>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="px-5 py-3.5">
                                         <div className="flex items-center gap-2.5 text-muted-foreground font-medium">
-                                            <Building2 className="w-3.5 h-3.5 text-primary/60" />
+                                            <Building2 className="w-3.5 h-3.5 text-navy/60 dark:text-blue-300/60" />
                                             {contact.organization?.name || <span className="italic opacity-50">None</span>}
                                         </div>
                                     </TableCell>
@@ -338,7 +338,7 @@ export function ContactList({ data, organizations = [] }: ContactListProps) {
                     <div className="flex items-center gap-1.5">
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
                             disabled={pageIndex === 0}
                         >
@@ -347,7 +347,7 @@ export function ContactList({ data, organizations = [] }: ContactListProps) {
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => setPageIndex(Math.min(pageCount - 1, pageIndex + 1))}
                             disabled={pageIndex >= pageCount - 1}
                         >

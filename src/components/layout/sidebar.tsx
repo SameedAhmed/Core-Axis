@@ -196,10 +196,10 @@ export function Sidebar({
                              </div>
                         )}
 
-                        <div className="px-3 text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-2 mt-2">
+                        <div className="px-3 text-[10px] font-bold text-navy dark:text-blue-300 uppercase tracking-[0.2em] mb-2 mt-2">
                             Sales & CRM
                         </div>
-                        {renderLinks(salesLinks, 'bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.02]')}
+                        {renderLinks(salesLinks, 'bg-navy text-white shadow-lg shadow-navy/20 scale-[1.02]')}
 
                         <div className="px-3 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-[0.2em] mb-2 mt-6">
                             Finance Module

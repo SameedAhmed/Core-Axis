@@ -108,3 +108,78 @@ export function classify(model: NaiveBayesModel, text: string): { label: string;
 
     return { label: bestLabel, confidence: bestProb, scores };
 }
+
+export interface EvaluationResult {
+    totalExamples: number;
+    trainSize: number;
+    testSize: number;
+    classDistribution: Record<string, number>;
+    accuracy: number; // 0-100
+    confusionMatrix: Record<string, Record<string, number>>; // actual -> predicted -> count
+    perClass: Record<string, { precision: number; recall: number; f1: number }>;
+}
+
+/**
+ * Deterministic stratified train/test evaluation. Holds out every k-th example
+ * of each class as the test set (default 20%), trains on the remainder, and
+ * measures accuracy on the held-out examples the model never saw. The split is
+ * deterministic so the reported accuracy is stable and reproducible — the same
+ * number every run, which is what you want for a demo/report.
+ */
+export function evaluateModel(examples: LabeledExample[], testFraction = 0.2): EvaluationResult {
+    const classes = Array.from(new Set(examples.map((e) => e.label)));
+    const classDistribution: Record<string, number> = {};
+    for (const cls of classes) classDistribution[cls] = 0;
+    for (const e of examples) classDistribution[e.label]++;
+
+    // Stratified deterministic split: within each class, every k-th item -> test.
+    const k = Math.max(2, Math.round(1 / testFraction));
+    const train: LabeledExample[] = [];
+    const test: LabeledExample[] = [];
+    const perClassIndex: Record<string, number> = {};
+    for (const cls of classes) perClassIndex[cls] = 0;
+
+    for (const e of examples) {
+        const idx = perClassIndex[e.label]++;
+        if (idx % k === 0) test.push(e);
+        else train.push(e);
+    }
+
+    const model = trainNaiveBayes(train);
+
+    const confusionMatrix: Record<string, Record<string, number>> = {};
+    for (const a of classes) {
+        confusionMatrix[a] = {};
+        for (const p of classes) confusionMatrix[a][p] = 0;
+    }
+
+    let correct = 0;
+    for (const e of test) {
+        const predicted = classify(model, e.text).label;
+        confusionMatrix[e.label][predicted]++;
+        if (predicted === e.label) correct++;
+    }
+
+    const accuracy = test.length > 0 ? (correct / test.length) * 100 : 0;
+
+    const perClass: Record<string, { precision: number; recall: number; f1: number }> = {};
+    for (const cls of classes) {
+        const tp = confusionMatrix[cls][cls];
+        const fp = classes.reduce((s, other) => s + (other === cls ? 0 : confusionMatrix[other][cls]), 0);
+        const fn = classes.reduce((s, other) => s + (other === cls ? 0 : confusionMatrix[cls][other]), 0);
+        const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
+        const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
+        const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
+        perClass[cls] = { precision: precision * 100, recall: recall * 100, f1: f1 * 100 };
+    }
+
+    return {
+        totalExamples: examples.length,
+        trainSize: train.length,
+        testSize: test.length,
+        classDistribution,
+        accuracy,
+        confusionMatrix,
+        perClass,
+    };
+}

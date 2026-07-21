@@ -189,7 +189,7 @@ export function OrganizationList({ data }: OrganizationListProps) {
                         href={website.startsWith("http") ? website : `https://${website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline flex items-center gap-1.5 text-sm font-medium"
+                        className="text-navy dark:text-blue-300 hover:underline flex items-center gap-1.5 text-sm font-medium"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <Globe className="w-3.5 h-3.5" />
@@ -337,7 +337,7 @@ export function OrganizationList({ data }: OrganizationListProps) {
             </div>
 
             {selectedIds.size > 0 && (
-                <div className="p-3 bg-primary text-primary-foreground rounded-lg flex items-center justify-between animate-in slide-in-from-top-2 duration-300 shadow-xl border border-white/10">
+                <div className="p-3 bg-navy text-white rounded-lg flex items-center justify-between animate-in slide-in-from-top-2 duration-300 shadow-xl border border-white/10">
                     <div className="flex items-center gap-3">
                         <div className="bg-white/20 p-1.5 rounded-md">
                             <ShieldAlert className="w-4 h-4 text-indigo-400" />
@@ -350,7 +350,7 @@ export function OrganizationList({ data }: OrganizationListProps) {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="text-primary-foreground/70 hover:text-primary-foreground hover:bg-white/10"
+                            className="text-white/70 hover:text-white hover:bg-white/10"
                             onClick={() => setSelectedIds(new Set())}
                         >
                             Deselect
@@ -454,7 +454,7 @@ export function OrganizationList({ data }: OrganizationListProps) {
                     <div className="flex items-center gap-1.5">
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
                         >
@@ -463,7 +463,7 @@ export function OrganizationList({ data }: OrganizationListProps) {
                         </Button>
                         <Button
                             variant="outline"
-                            className="h-8 w-8 p-0 bg-background hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-none"
+                            className="h-8 w-8 p-0 bg-background hover:bg-navy/5 hover:text-navy hover:border-navy/30 transition-all shadow-none"
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
                         >

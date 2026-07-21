@@ -116,6 +116,74 @@ export async function scoreCandidate(candidateId: string, roleDescription?: stri
     }
 }
 
+/**
+ * Extracts plain text from an uploaded PDF resume (base64-encoded), reusing
+ * the same local pdf-parse pipeline as the Finance Analyst's document upload.
+ */
+export async function extractResumeText(fileBase64: string) {
+    try {
+        await requireUser();
+        const { PDFParse } = await import("pdf-parse");
+        const buffer = Buffer.from(fileBase64, "base64");
+        const parser = new PDFParse({ data: buffer });
+        const result = await parser.getText();
+        return { success: true, text: result.text };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to extract PDF text" };
+    }
+}
+
+const bulkCandidateSchema = z.array(
+    z.object({
+        name: z.string().min(1),
+        email: z.string().min(1),
+        appliedRole: z.string().min(1),
+        resumeText: z.string().min(1),
+    })
+);
+
+/**
+ * Creates many candidates in one batch, for the bulk CV upload flow — each
+ * parsed resume becomes one candidate, ready for AI screening immediately
+ * after (the caller runs scoreCandidate on each returned record).
+ */
+export async function bulkCreateCandidates(rawCandidates: any) {
+    try {
+        const user = await requireUser();
+        const workspaceId = (user as any).activeWorkspaceId || null;
+        if (!workspaceId) throw new Error("No active workspace");
+
+        const data = bulkCandidateSchema.parse(rawCandidates);
+        if (data.length === 0) throw new Error("No valid resumes to import");
+
+        const created = await Promise.all(
+            data.map((c) =>
+                (prisma as any).candidate.create({
+                    data: {
+                        name: c.name,
+                        email: c.email,
+                        appliedRole: c.appliedRole,
+                        resumeText: c.resumeText,
+                        workspaceId,
+                    },
+                })
+            )
+        );
+
+        await createAuditLog({
+            action: "CREATE",
+            entityType: "CANDIDATE",
+            entityId: created[0]?.id || "bulk",
+            details: `Bulk-imported ${created.length} candidate(s) from CV upload`,
+        });
+
+        revalidatePath("/dashboard/hr/recruitment");
+        return { success: true, data: created };
+    } catch (error: any) {
+        return { success: false, error: error.message || "Failed to import candidates" };
+    }
+}
+
 export async function updateCandidateStatus(candidateId: string, status: string) {
     try {
         const user = await requireUser();

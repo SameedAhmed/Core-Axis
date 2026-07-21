@@ -16,6 +16,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { TrendingUp, Target, DollarSign, Activity } from "lucide-react";
+import { StatCard } from "@/components/dashboard/stat-card";
 
 interface DealForecastProps {
     data: any[];
@@ -34,7 +35,7 @@ const STAGE_WEIGHTS: Record<string, number> = {
 
 const STAGE_COLORS: Record<string, string> = {
     QUALIFICATION: "#94a3b8", // slate-400
-    PROPOSAL: "#60a5fa", // blue-400
+    PROPOSAL: "#1a3a8f", // brand navy
     NEGOTIATION: "#a78bfa", // violet-400
     WON: "#34d399", // indigo-400
 };
@@ -135,7 +136,7 @@ export function DealForecast({ data, effectiveRole, organizations, dealStages }:
                     </div>
                     <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-muted-foreground font-medium">Weighted Forecast:</span>
-                        <span className="text-sm font-bold text-primary">
+                        <span className="text-sm font-bold text-navy dark:text-blue-300">
                             {formatCurrency(payload[0]?.payload?.weightedValue)}
                         </span>
                     </div>
@@ -152,60 +153,27 @@ export function DealForecast({ data, effectiveRole, organizations, dealStages }:
     return (
         <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-3">
-                <Card className="bg-card shadow-sm border-border">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Active Pipeline</p>
-                                <h3 className="text-2xl font-bold text-foreground mt-2">{formatCurrency(summary.totalActivePipeline)}</h3>
-                            </div>
-                            <div className="w-12 h-12 bg-blue-500/10 rounded-full flex items-center justify-center">
-                                <DollarSign className="w-6 h-6 text-blue-500" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-4 font-medium flex items-center">
-                            <Activity className="w-3.5 h-3.5 mr-1.5" />
-                            Gross value of open deals
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-card shadow-sm border-border relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent pointer-events-none" />
-                    <CardContent className="p-6 relative z-10">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-primary">Weighted Forecast</p>
-                                <h3 className="text-3xl font-bold text-foreground mt-2">{formatCurrency(summary.expectedRevenue)}</h3>
-                            </div>
-                            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center border border-primary/20 shadow-[0_0_15px_rgba(var(--primary),0.2)]">
-                                <Target className="w-6 h-6 text-primary" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-4 font-medium flex items-center">
-                            <TrendingUp className="w-3.5 h-3.5 mr-1.5 text-primary" />
-                            Expected revenue based on close probability
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-card shadow-sm border-border">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-muted-foreground">Sales Confirmed Revenue</p>
-                                <h3 className="text-2xl font-bold text-primary mt-2">{formatCurrency(summary.wonRevenue)}</h3>
-                            </div>
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                                <TrendingUp className="w-6 h-6 text-primary" />
-                            </div>
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-4 font-medium flex items-center">
-                            <Target className="w-3.5 h-3.5 mr-1.5" />
-                            Actual realized revenue
-                        </p>
-                    </CardContent>
-                </Card>
+                <StatCard
+                    label="Total Active Pipeline"
+                    value={formatCurrency(summary.totalActivePipeline)}
+                    icon={<DollarSign />}
+                    theme="navy"
+                    trend={{ icon: <Activity />, text: "Gross value of open deals" }}
+                />
+                <StatCard
+                    label="Weighted Forecast"
+                    value={formatCurrency(summary.expectedRevenue)}
+                    icon={<Target />}
+                    theme="navy"
+                    trend={{ icon: <TrendingUp />, text: "Expected revenue based on close probability" }}
+                />
+                <StatCard
+                    label="Sales Confirmed Revenue"
+                    value={formatCurrency(summary.wonRevenue)}
+                    icon={<TrendingUp />}
+                    theme="navy"
+                    trend={{ icon: <Target />, text: "Actual realized revenue" }}
+                />
             </div>
 
             <Card className="shadow-sm border-border bg-card">
@@ -244,7 +212,7 @@ export function DealForecast({ data, effectiveRole, organizations, dealStages }:
                                         {chartData.map((entry, index) => {
                                             const getColor = (c: string) => {
                                                 switch (c) {
-                                                    case "blue": return "#3b82f6";
+                                                    case "blue": return "#1a3a8f";
                                                     case "amber": return "#f59e0b";
                                                     case "indigo": return "#1a3a8f";
                                                     case "red": return "#ef4444";

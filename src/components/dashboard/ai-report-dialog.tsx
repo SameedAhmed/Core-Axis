@@ -61,7 +61,7 @@ export function AiReportDialog({ metrics }: AiReportDialogProps) {
             <DialogContent className="w-[95vw] sm:max-w-[1000px] border-border/50 bg-white dark:bg-zinc-950 shadow-[0_0_50px_-12px_rgba(0,0,0,0.3)] rounded-[24px] overflow-hidden p-0 max-h-[90vh] flex flex-col [&>button]:text-zinc-400 [&>button:hover]:text-white transition-all [&>button]:z-[100]">
                 <div className="bg-[#0A0A0B] p-6 sm:p-8 text-white relative overflow-hidden shrink-0">
                     <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-indigo-500/10 rounded-full blur-[80px]" />
-                    <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[80px]" />
+                    <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-navy/10 rounded-full blur-[80px]" />
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_0%,#000_70%,transparent_100%)]" />
                     <DialogHeader className="relative z-10 flex flex-col sm:flex-row items-start justify-between gap-4">
                         <div>
@@ -87,11 +87,11 @@ export function AiReportDialog({ metrics }: AiReportDialogProps) {
                     <div className="lg:col-span-2 space-y-6">
                         <section className="space-y-4">
                             <h3 className="text-lg font-semibold text-foreground flex items-center gap-2 tracking-tight">
-                                <Activity className="h-5 w-5 text-blue-500 dark:text-blue-400" /> Executive Summary
+                                <Activity className="h-5 w-5 text-navy dark:text-blue-300" /> Executive Summary
                             </h3>
                             <div className="p-5 sm:p-6 rounded-[20px] bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
                                 <p className="text-muted-foreground leading-relaxed text-[15px]">
-                                    Your pipeline currently holds <strong className="text-foreground font-semibold bg-blue-500/10 px-1.5 py-0.5 rounded">{fmt(totalPipelineValue)}</strong> in active deals across <strong className="text-foreground font-semibold">{activeDeals} open opportunities</strong>.{" "}
+                                    Your pipeline currently holds <strong className="text-foreground font-semibold bg-navy/10 px-1.5 py-0.5 rounded">{fmt(totalPipelineValue)}</strong> in active deals across <strong className="text-foreground font-semibold">{activeDeals} open opportunities</strong>.{" "}
                                     {totalWon > 0 ? (
                                         <>You have closed <strong className="text-foreground font-semibold bg-indigo-500/10 px-1.5 py-0.5 rounded">{fmt(totalWon)}</strong> in revenue, representing a <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{pipelineCapture}%</span> capture rate of total pipeline.</>
                                     ) : (
@@ -123,11 +123,11 @@ export function AiReportDialog({ metrics }: AiReportDialogProps) {
                                         <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Activities</p>
                                         <p className="text-2xl sm:text-3xl font-bold text-foreground mt-2 tracking-tight">{totalActivities}</p>
                                     </div>
-                                    <div className="p-2.5 bg-blue-500/10 rounded-xl group-hover:scale-110 transition-transform">
-                                        <BarChart3 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    <div className="p-2.5 bg-navy/10 rounded-xl group-hover:scale-110 transition-transform">
+                                        <BarChart3 className="h-5 w-5 text-navy dark:text-blue-300" />
                                     </div>
                                 </div>
-                                <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-blue-700 dark:text-blue-400 bg-blue-500/10 w-fit px-3 py-1 rounded-full">
+                                <div className="mt-5 flex items-center gap-2 text-sm font-semibold text-navy dark:text-blue-300 bg-navy/10 w-fit px-3 py-1 rounded-full">
                                     <ChevronRight className="h-4 w-4" /> Logged interactions
                                 </div>
                             </div>

@@ -144,7 +144,7 @@ export function PerformanceHub({ currentUser, effectiveRole, leads, deals, targe
             <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 mt-2">
                     <h2 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-                        <Activity className="w-5 h-5 text-primary" /> {isManagerOrAdmin ? "Overall Team Data" : "My Performance"}
+                        <Activity className="w-5 h-5 text-navy dark:text-blue-300" /> {isManagerOrAdmin ? "Overall Team Data" : "My Performance"}
                     </h2>
                     <div className="bg-card border border-border rounded-lg shadow-sm">
                         <DatePickerWithRange date={dateRange} setDate={setDateRange} />
@@ -155,23 +155,23 @@ export function PerformanceHub({ currentUser, effectiveRole, leads, deals, targe
                     <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-tight">Revenue Generated</CardTitle>
-                            <DollarSign className="h-4 w-4 text-primary" />
+                            <DollarSign className="h-4 w-4 text-navy dark:text-blue-300" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-black text-foreground overflow-hidden text-ellipsis">${myRevenue.toLocaleString()}</div>
-                            <p className="text-xs text-muted-foreground mt-1 text-primary font-medium">In selected period</p>
+                            <p className="text-xs text-muted-foreground mt-1 text-navy dark:text-blue-300 font-medium">In selected period</p>
                         </CardContent>
                     </Card>
 
                     <Card className="bg-card border-border shadow-sm hover:shadow-md transition-shadow">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-tight">Monthly Target</CardTitle>
-                            <Target className="h-4 w-4 text-primary" />
+                            <Target className="h-4 w-4 text-navy dark:text-blue-300" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-black text-foreground overflow-hidden text-ellipsis">${monthlyTarget.toLocaleString()}</div>
                             <div className="mt-2 h-2 flex items-center bg-muted rounded-full overflow-hidden">
-                                <div className="h-full bg-primary rounded-full transition-all duration-1000 ease-in-out" style={{ width: `${targetProgress}%` }} />
+                                <div className="h-full bg-navy rounded-full transition-all duration-1000 ease-in-out" style={{ width: `${targetProgress}%` }} />
                             </div>
                             <p className="text-[10px] text-muted-foreground mt-2 font-medium">{targetProgress.toFixed(0)}% reached</p>
                         </CardContent>
@@ -258,7 +258,7 @@ export function PerformanceHub({ currentUser, effectiveRole, leads, deals, targe
             {effectiveRole !== "REP" && (
                 <div className="pt-8 border-t border-border mt-8 pb-8">
                     <h2 className="text-xl font-bold tracking-tight mb-4 flex items-center gap-2">
-                        <Users className="w-5 h-5 text-blue-500" /> Team Leaderboard
+                        <Users className="w-5 h-5 text-navy dark:text-blue-300" /> Team Leaderboard
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Revenue Leaderboard */}
@@ -291,7 +291,7 @@ export function PerformanceHub({ currentUser, effectiveRole, leads, deals, targe
                                                         <div className="flex items-center gap-1 mt-1 justify-end">
                                                             <Input 
                                                                 type="number" 
-                                                                className="h-6 w-20 px-2 text-[10px] font-bold focus-visible:ring-1 focus-visible:ring-blue-500/50 bg-background" 
+                                                                className="h-6 w-20 px-2 text-[10px] font-bold focus-visible:ring-1 focus-visible:ring-navy/50 bg-background" 
                                                                 value={editTargetValue} 
                                                                 onChange={(e) => setEditTargetValue(e.target.value)} 
                                                                 autoFocus 

@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { CircleDollarSign, ArrowUpRight, ArrowDownRight, Wallet, ReceiptText, Sparkles, AlertTriangle, Loader2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getFinanceOverview } from "@/lib/actions/finance";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { StatCard } from "@/components/dashboard/stat-card";
 
 interface FinanceOverview {
   chartData: { name: string; revenue: number; expenses: number }[];
@@ -51,19 +52,13 @@ export default function FinanceDashboard() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-400 bg-clip-text text-transparent">
-            Finance Hub
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm">
-            Monitor your cash flow and AI financial insights, computed from real ledger data.
-          </p>
-        </div>
-        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 py-1.5 px-3">
-          <CircleDollarSign className="w-4 h-4 mr-2" /> {data.hasData ? "Live Data" : "No Data Yet"}
-        </Badge>
-      </div>
+      <PageHeader
+        icon={<CircleDollarSign />}
+        theme="emerald"
+        title="Finance Hub"
+        subtitle="Monitor your cash flow and AI financial insights, computed from real ledger data."
+        badgeText={data.hasData ? "Live Data" : "No Data Yet"}
+      />
 
       {!data.hasData && (
         <Card className="border-amber-500/20 bg-amber-500/5">
@@ -75,59 +70,30 @@ export default function FinanceDashboard() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="border-emerald-500/10 shadow-lg shadow-emerald-500/5 hover:-translate-y-1 transition-all">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue (6mo)</CardTitle>
-            <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center">
-              <CircleDollarSign className="text-emerald-500 w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-extrabold text-foreground">
-              ${data.totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </div>
-            <p className="text-xs text-muted-foreground flex items-center mt-1">From paid invoices</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-500/10 shadow-lg shadow-red-500/5 hover:-translate-y-1 transition-all">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses (6mo)</CardTitle>
-            <div className="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center">
-              <Wallet className="text-red-500 w-4 h-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-extrabold text-foreground">
-              ${data.totalExpenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </div>
-            <p className={`text-xs flex items-center mt-1 ${netMargin >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-              {netMargin >= 0 ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-              Net {netMargin >= 0 ? "surplus" : "deficit"}: ${Math.abs(netMargin).toLocaleString("en-US", { minimumFractionDigits: 2 })}
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-violet-500/10 shadow-lg shadow-violet-500/5 relative overflow-hidden group hover:-translate-y-1 transition-all">
-          <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Sparkles className="w-24 h-24 text-violet-500 rotate-12" />
-          </div>
-          <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-            <CardTitle className="text-sm font-medium text-violet-600 dark:text-violet-400">AI Budget Forecast</CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-lg font-semibold text-foreground">
-              Next month&apos;s predicted expenses:{" "}
-              <span className="text-violet-600 font-extrabold">
-                ${data.forecastNextMonth.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Trend: spending is {data.trend === "up" ? "rising" : data.trend === "down" ? "falling" : "stable"} &mdash; linear
-              regression fit over your last 6 months of real expense data.
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          label="Total Revenue (6mo)"
+          value={`$${data.totalRevenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          icon={<CircleDollarSign />}
+          theme="emerald"
+          trend={{ text: "From paid invoices" }}
+        />
+        <StatCard
+          label="Total Expenses (6mo)"
+          value={`$${data.totalExpenses.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          icon={<Wallet />}
+          theme={netMargin >= 0 ? "emerald" : "red"}
+          trend={{
+            icon: netMargin >= 0 ? <ArrowUpRight /> : <ArrowDownRight />,
+            text: `Net ${netMargin >= 0 ? "surplus" : "deficit"}: $${Math.abs(netMargin).toLocaleString("en-US", { minimumFractionDigits: 2 })}`,
+          }}
+        />
+        <StatCard
+          label="AI Budget Forecast"
+          value={`$${data.forecastNextMonth.toLocaleString("en-US", { minimumFractionDigits: 2 })}`}
+          icon={<Sparkles />}
+          theme="violet"
+          trend={{ text: `Trend: ${data.trend === "up" ? "rising" : data.trend === "down" ? "falling" : "stable"}` }}
+        />
       </div>
 
       {data.anomalies.length > 0 && (

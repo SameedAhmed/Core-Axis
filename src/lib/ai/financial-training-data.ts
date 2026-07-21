@@ -1,13 +1,18 @@
 import type { LabeledExample } from "./naive-bayes";
 
 /**
- * Hand-authored training set for the Revenue/Expense Naive Bayes classifier.
- * These are our own labeled examples, not scraped or borrowed from any
- * dataset — written to cover varied real-world phrasing across departments
- * so the classifier generalizes beyond exact keyword matches.
+ * Hand-authored, labeled training set for the Revenue/Expense Naive Bayes
+ * classifier. These are our own examples — written to cover varied real-world
+ * financial phrasing across many departments and scenarios so the classifier
+ * generalizes beyond exact keyword matches. Each row is a (text, label) pair;
+ * the model learns word-likelihoods per class from these labels.
+ *
+ * Size is intentionally in the low hundreds: Naive Bayes is a high-bias,
+ * low-variance model that performs well on modest labeled data — unlike deep
+ * models, it does not need millions of examples. See naive-bayes.ts.
  */
 export const FINANCIAL_TRAINING_DATA: LabeledExample[] = [
-    // --- REVENUE ---
+    // ============================ REVENUE ============================
     { text: "Sales department generated fifty thousand dollars in revenue this quarter", label: "REVENUE" },
     { text: "Product sales brought in strong income from new customers", label: "REVENUE" },
     { text: "Client payment received for consulting services rendered", label: "REVENUE" },
@@ -46,7 +51,6 @@ export const FINANCIAL_TRAINING_DATA: LabeledExample[] = [
     { text: "Support contract renewal generated additional revenue", label: "REVENUE" },
     { text: "Retail store foot traffic converted to strong sales numbers", label: "REVENUE" },
     { text: "New product launch drove a spike in customer purchases", label: "REVENUE" },
-    { text: "Affiliate program payouts were offset by higher referral sales", label: "REVENUE" },
     { text: "Annual contract value increased after expansion deal", label: "REVENUE" },
     { text: "Cash inflow from completed customer project", label: "REVENUE" },
     { text: "Gross revenue for the department rose year over year", label: "REVENUE" },
@@ -54,8 +58,54 @@ export const FINANCIAL_TRAINING_DATA: LabeledExample[] = [
     { text: "B2B partnership brought recurring monthly income", label: "REVENUE" },
     { text: "Sales incentive program drove higher unit sales", label: "REVENUE" },
     { text: "Trade show leads converted into paying customers", label: "REVENUE" },
+    { text: "Deposits received from advance customer bookings", label: "REVENUE" },
+    { text: "Digital download sales grew after the marketing push", label: "REVENUE" },
+    { text: "Membership dues collected from renewing subscribers", label: "REVENUE" },
+    { text: "Cross-sell campaign added revenue from existing clients", label: "REVENUE" },
+    { text: "Volume discount deal still increased total sales value", label: "REVENUE" },
+    { text: "Reseller channel delivered strong quarterly bookings", label: "REVENUE" },
+    { text: "Enterprise license agreement renewed at a higher tier", label: "REVENUE" },
+    { text: "Pay-per-use billing generated income from active usage", label: "REVENUE" },
+    { text: "Seasonal promotion drove a surge in online orders", label: "REVENUE" },
+    { text: "Milestone payment received on the delivery contract", label: "REVENUE" },
+    { text: "Advertising partners paid for banner placements", label: "REVENUE" },
+    { text: "Gift card sales added to the holiday revenue total", label: "REVENUE" },
+    { text: "Data licensing agreement produced a lump sum payment", label: "REVENUE" },
+    { text: "Warranty upgrade purchases added incremental income", label: "REVENUE" },
+    { text: "Government tender awarded generating a large contract", label: "REVENUE" },
+    { text: "Client settled their invoice ahead of the due date", label: "REVENUE" },
+    { text: "Recurring maintenance plan billed to the customer base", label: "REVENUE" },
+    { text: "New market entry produced first sales this quarter", label: "REVENUE" },
+    { text: "Bulk order from a wholesale buyer boosted turnover", label: "REVENUE" },
+    { text: "Platform commission earned on third party transactions", label: "REVENUE" },
+    { text: "Customer expanded their seat count increasing the contract", label: "REVENUE" },
+    { text: "Subscription upgrades pushed monthly income higher", label: "REVENUE" },
+    { text: "Product bundle sold well during the launch week", label: "REVENUE" },
+    { text: "Late renewal finally closed adding to revenue", label: "REVENUE" },
+    { text: "Affiliate-driven signups converted into paid plans", label: "REVENUE" },
+    { text: "Regional office reported its best sales month yet", label: "REVENUE" },
+    { text: "Installation service fee charged to the new client", label: "REVENUE" },
+    { text: "Annual maintenance contract billed upfront", label: "REVENUE" },
+    { text: "Customer top-up payment credited to the account", label: "REVENUE" },
+    { text: "Trade-in program still netted positive sales revenue", label: "REVENUE" },
+    { text: "Live event registrations sold out generating strong income", label: "REVENUE" },
+    { text: "Distribution partner remitted the quarterly earnings share", label: "REVENUE" },
+    { text: "Freemium conversions produced new paid subscriptions", label: "REVENUE" },
+    { text: "Custom development project invoiced to the client", label: "REVENUE" },
+    { text: "Retail chain reordered stock boosting wholesale income", label: "REVENUE" },
+    { text: "Online course enrollments generated tuition revenue", label: "REVENUE" },
+    { text: "White-label deal signed with a new business partner", label: "REVENUE" },
+    { text: "Renewal wave lifted recurring revenue for the quarter", label: "REVENUE" },
+    { text: "Marketplace seller fees collected from active vendors", label: "REVENUE" },
+    { text: "Customer prepaid for a full year of service", label: "REVENUE" },
+    { text: "Add-on module purchases increased average deal size", label: "REVENUE" },
+    { text: "Dividend income received from a minority investment", label: "REVENUE" },
+    { text: "Consulting retainer billed monthly to the key account", label: "REVENUE" },
+    { text: "Referral partner drove several new customer signings", label: "REVENUE" },
+    { text: "Holiday campaign produced record daily sales", label: "REVENUE" },
+    { text: "Enterprise renewal secured at expanded scope and value", label: "REVENUE" },
 
-    // --- EXPENSE ---
+    // ============================ EXPENSE ============================
     { text: "Marketing spent twelve thousand dollars on advertising campaigns", label: "EXPENSE" },
     { text: "Office rent paid for the downtown headquarters", label: "EXPENSE" },
     { text: "Payroll costs increased due to new hires this quarter", label: "EXPENSE" },
@@ -102,4 +152,50 @@ export const FINANCIAL_TRAINING_DATA: LabeledExample[] = [
     { text: "Employee stock plan administration costs", label: "EXPENSE" },
     { text: "Warehouse lease payment for additional storage space", label: "EXPENSE" },
     { text: "IT security software subscription renewed annually", label: "EXPENSE" },
+    { text: "Utility electricity charges for the manufacturing plant", label: "EXPENSE" },
+    { text: "Sales team commission payouts for closed deals", label: "EXPENSE" },
+    { text: "Domain and web hosting renewal fees", label: "EXPENSE" },
+    { text: "Catering costs for the company town hall", label: "EXPENSE" },
+    { text: "Professional membership dues for the finance staff", label: "EXPENSE" },
+    { text: "Repair costs for the delivery truck breakdown", label: "EXPENSE" },
+    { text: "Advertising billboard rental for the campaign", label: "EXPENSE" },
+    { text: "Cleaning and janitorial services for the office", label: "EXPENSE" },
+    { text: "Conference sponsorship fee paid to the organizer", label: "EXPENSE" },
+    { text: "Subscription to market research reports renewed", label: "EXPENSE" },
+    { text: "Shipping insurance for high value international freight", label: "EXPENSE" },
+    { text: "Employee wellness program costs for the quarter", label: "EXPENSE" },
+    { text: "Bonus payments distributed to top performers", label: "EXPENSE" },
+    { text: "Cost of goods sold rose with higher supplier prices", label: "EXPENSE" },
+    { text: "Payment gateway processing fees deducted this month", label: "EXPENSE" },
+    { text: "Office internet and telephone service charges", label: "EXPENSE" },
+    { text: "Trademark registration fees paid to the legal office", label: "EXPENSE" },
+    { text: "Warehouse forklift maintenance and servicing cost", label: "EXPENSE" },
+    { text: "Employee severance package paid on departure", label: "EXPENSE" },
+    { text: "Digital ad platform spend exceeded the monthly budget", label: "EXPENSE" },
+    { text: "Accounting software annual license fee", label: "EXPENSE" },
+    { text: "Property tax payment for the company premises", label: "EXPENSE" },
+    { text: "Cost of raw components for the assembly line", label: "EXPENSE" },
+    { text: "Team offsite venue and accommodation costs", label: "EXPENSE" },
+    { text: "Contractor day rate billed for the migration work", label: "EXPENSE" },
+    { text: "Health insurance renewal premium for all staff", label: "EXPENSE" },
+    { text: "Courier charges for document delivery", label: "EXPENSE" },
+    { text: "Penalty fee for early lease termination", label: "EXPENSE" },
+    { text: "Water and sewage utility bill for the facility", label: "EXPENSE" },
+    { text: "Software developer contractor payment for the sprint", label: "EXPENSE" },
+    { text: "Marketing swag and promotional giveaways cost", label: "EXPENSE" },
+    { text: "Recruitment job board posting fees", label: "EXPENSE" },
+    { text: "Data center colocation monthly charge", label: "EXPENSE" },
+    { text: "Fleet vehicle insurance premium payment", label: "EXPENSE" },
+    { text: "Legal settlement paid to resolve a dispute", label: "EXPENSE" },
+    { text: "Office coffee and pantry restocking costs", label: "EXPENSE" },
+    { text: "Annual audit and tax filing service fees", label: "EXPENSE" },
+    { text: "Cloud backup and disaster recovery subscription", label: "EXPENSE" },
+    { text: "Equipment lease payment for manufacturing machinery", label: "EXPENSE" },
+    { text: "Staff training workshop facilitator fees", label: "EXPENSE" },
+    { text: "Import duties paid on incoming raw materials", label: "EXPENSE" },
+    { text: "Customer acquisition cost from paid advertising", label: "EXPENSE" },
+    { text: "Consulting firm engagement for process improvement", label: "EXPENSE" },
+    { text: "Office renovation and fit-out contractor costs", label: "EXPENSE" },
+    { text: "Payroll processing service monthly fee", label: "EXPENSE" },
+    { text: "Warehouse security guard staffing costs", label: "EXPENSE" },
 ];

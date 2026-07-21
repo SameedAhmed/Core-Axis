@@ -37,6 +37,12 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Brand navy — from the CoreAxis emblem gradient (src/app/icon.svg), used
+     to scope the Sales & CRM module's accent color without touching the
+     global --primary token used everywhere else in the app. */
+  --color-navy: #1a3a8f;
+  --color-navy-deep: #0d1b4b;
+  --color-navy-text: #0d2a5a;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

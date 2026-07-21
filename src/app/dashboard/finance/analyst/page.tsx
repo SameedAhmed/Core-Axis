@@ -32,7 +32,24 @@ import {
   getFinancialReports,
   deleteFinancialReport,
   enhanceReportWithAI,
+  getModelPerformance,
 } from "@/lib/actions/finance-analyst";
+import { Brain, Database, Target, ChevronDown, ChevronRight } from "lucide-react";
+import { PageHeader } from "@/components/dashboard/page-header";
+import { StatCard } from "@/components/dashboard/stat-card";
+
+interface ModelPerformance {
+  evaluation: {
+    totalExamples: number;
+    trainSize: number;
+    testSize: number;
+    classDistribution: Record<string, number>;
+    accuracy: number;
+    confusionMatrix: Record<string, Record<string, number>>;
+    perClass: Record<string, { precision: number; recall: number; f1: number }>;
+  };
+  sample: { text: string; label: string }[];
+}
 
 interface DepartmentMetric {
   department: string;
@@ -93,6 +110,8 @@ export default function AIFinancialAnalystPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [lastPasteText, setLastPasteText] = useState<string | null>(null);
   const [enhancing, setEnhancing] = useState(false);
+  const [modelPerf, setModelPerf] = useState<ModelPerformance | null>(null);
+  const [modelExpanded, setModelExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function refreshHistory() {
@@ -104,6 +123,9 @@ export default function AIFinancialAnalystPage() {
 
   useEffect(() => {
     refreshHistory();
+    getModelPerformance().then((res) => {
+      if (res.success) setModelPerf(res.data);
+    });
   }, []);
 
   function readFileAsText(file: File): Promise<string> {
@@ -239,19 +261,117 @@ export default function AIFinancialAnalystPage() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-500">
-      <div className="flex items-center gap-3">
-        <div className="bg-violet-500/10 p-3 rounded-xl border border-violet-500/20">
-          <Sparkles className="text-violet-600 dark:text-violet-400 w-6 h-6" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 to-indigo-500 bg-clip-text text-transparent">
-            AI Financial Analyst
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Upload a ledger (CSV/Excel/PDF) or paste P&amp;L notes — runs on our own trained classifier, 100% locally, no external API required.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        icon={<Brain />}
+        theme="indigo"
+        title="AI Financial Analyst"
+        subtitle="Upload a ledger (CSV/Excel/PDF) or paste P&L notes — runs on our own trained classifier, 100% locally, no external API required."
+        badgeText="100% Local"
+      />
+
+      {/* Model & Dataset Panel — proof the classifier is really trained */}
+      {modelPerf && (
+        <Card className="border-indigo-500/20 shadow-lg shadow-indigo-500/[0.04] bg-gradient-to-br from-background to-indigo-50/10">
+          <CardHeader className="pb-3">
+            <button
+              className="flex items-center justify-between w-full text-left"
+              onClick={() => setModelExpanded((v) => !v)}
+            >
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Brain className="w-4 h-4 text-indigo-500" /> Model &amp; Training Dataset
+                <Badge variant="outline" className="ml-2 bg-indigo-500/10 text-indigo-600 border-indigo-500/20 font-normal">
+                  Naive Bayes · trained in-house
+                </Badge>
+              </CardTitle>
+              {modelExpanded ? <ChevronDown className="w-4 h-4 text-muted-foreground" /> : <ChevronRight className="w-4 h-4 text-muted-foreground" />}
+            </button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Headline metrics — always visible */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="rounded-lg border border-border/50 bg-background/60 p-3">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                  <Target className="w-3 h-3" /> Test Accuracy
+                </div>
+                <div className="text-2xl font-black text-emerald-600 mt-1">{modelPerf.evaluation.accuracy.toFixed(1)}%</div>
+                <div className="text-[10px] text-muted-foreground">on held-out data</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-background/60 p-3">
+                <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-bold">
+                  <Database className="w-3 h-3" /> Dataset Size
+                </div>
+                <div className="text-2xl font-black text-foreground mt-1">{modelPerf.evaluation.totalExamples}</div>
+                <div className="text-[10px] text-muted-foreground">labeled examples</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-background/60 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Train / Test Split</div>
+                <div className="text-2xl font-black text-foreground mt-1">{modelPerf.evaluation.trainSize} / {modelPerf.evaluation.testSize}</div>
+                <div className="text-[10px] text-muted-foreground">80% train, 20% test</div>
+              </div>
+              <div className="rounded-lg border border-border/50 bg-background/60 p-3">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold">Classes</div>
+                <div className="text-sm font-bold text-foreground mt-1">
+                  {Object.entries(modelPerf.evaluation.classDistribution).map(([cls, n]) => (
+                    <div key={cls}>{cls}: {n}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {modelExpanded && (
+              <div className="space-y-4 pt-2 animate-in fade-in duration-200">
+                {/* Confusion matrix */}
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Confusion Matrix (held-out test set)</p>
+                  <div className="overflow-x-auto">
+                    <table className="text-xs border-collapse">
+                      <thead>
+                        <tr>
+                          <th className="p-2 text-left text-muted-foreground font-medium">actual ↓ / predicted →</th>
+                          {Object.keys(modelPerf.evaluation.confusionMatrix).map((p) => (
+                            <th key={p} className="p-2 text-center font-bold">{p}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(modelPerf.evaluation.confusionMatrix).map(([actual, preds]) => (
+                          <tr key={actual}>
+                            <td className="p-2 font-bold">{actual}</td>
+                            {Object.entries(preds).map(([pred, count]) => (
+                              <td key={pred} className={`p-2 text-center font-mono ${actual === pred ? "bg-emerald-500/10 text-emerald-600 font-bold rounded" : "text-muted-foreground"}`}>
+                                {count}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2">Diagonal = correct predictions. Precision/Recall/F1 per class: {Object.entries(modelPerf.evaluation.perClass).map(([cls, m]) => `${cls} ${m.precision.toFixed(0)}%/${m.recall.toFixed(0)}%/${m.f1.toFixed(0)}%`).join("  ·  ")}</p>
+                </div>
+
+                {/* Training data sample */}
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Training Data Sample</p>
+                  <div className="space-y-1 max-h-56 overflow-y-auto pr-2">
+                    {modelPerf.sample.map((row, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs bg-background/60 rounded px-2 py-1.5 border border-border/40">
+                        <Badge variant="outline" className={row.label === "REVENUE" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[9px] shrink-0" : "bg-red-500/10 text-red-600 border-red-500/20 text-[9px] shrink-0"}>
+                          {row.label}
+                        </Badge>
+                        <span className="text-muted-foreground truncate">{row.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-2">
+                    A representative sample of the {modelPerf.evaluation.totalExamples} hand-labeled examples the classifier learns word-likelihoods from. Full dataset: <span className="font-mono">src/lib/ai/financial-training-data.ts</span>
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Input Section */}
       <Card className="border-border/50 shadow-xl shadow-black/5">
@@ -360,22 +480,14 @@ export default function AIFinancialAnalystPage() {
 
             <TabsContent value="overview" className="space-y-6 pt-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-emerald-500/10">
-                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Revenue</CardTitle></CardHeader>
-                  <CardContent><div className="text-2xl font-bold">${result.revenue.toLocaleString("en-US", { maximumFractionDigits: 0 })}</div></CardContent>
-                </Card>
-                <Card className="border-red-500/10">
-                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Expenses</CardTitle></CardHeader>
-                  <CardContent><div className="text-2xl font-bold">${result.expenses.toLocaleString("en-US", { maximumFractionDigits: 0 })}</div></CardContent>
-                </Card>
-                <Card className="border-violet-500/10">
-                  <CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Net Cash Flow</CardTitle></CardHeader>
-                  <CardContent>
-                    <div className={`text-2xl font-bold ${result.netProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}>
-                      ${result.netProfit.toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard label="Revenue" value={`$${result.revenue.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} icon={<TrendingUp />} theme="emerald" />
+                <StatCard label="Expenses" value={`$${result.expenses.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} icon={<TrendingDown />} theme="red" />
+                <StatCard
+                  label="Net Cash Flow"
+                  value={`$${result.netProfit.toLocaleString("en-US", { maximumFractionDigits: 0 })}`}
+                  icon={<Gauge />}
+                  theme={result.netProfit >= 0 ? "emerald" : "red"}
+                />
               </div>
 
               <Card>
